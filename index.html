@@ -146,14 +146,12 @@
     function Logo({ size = 32 }) {
       return (
         <div className="relative flex items-center gap-2.5 shrink-0 group">
-          <div 
-            className="relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#E51D2D] to-[#2B2A96] p-0.5 shadow-lg shadow-[#E51D2D]/20 transition-transform duration-300 group-hover:scale-105"
+          <img 
+            src="https://raw.githubusercontent.com/Tototkitfo/Monetox/main/monetox.jpg" 
+            alt="Monetox Logo" 
             style={{ width: size, height: size }}
-          >
-            <div className="w-full h-full bg-[#08090a] rounded-[10px] flex items-center justify-center overflow-hidden">
-              <span className="font-extrabold text-white text-xs tracking-tighter">MX</span>
-            </div>
-          </div>
+            className="rounded-xl object-cover transition-transform duration-300 group-hover:scale-105"
+          />
           <span className="text-[17px] font-bold tracking-tight text-white">Monetox</span>
         </div>
       );
