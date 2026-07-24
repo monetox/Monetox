@@ -46,19 +46,6 @@
       box-shadow: 0 10px 30px -10px rgba(229, 29, 45, 0.15);
     }
 
-    /* Gradient Text */
-    .text-gradient-red {
-      background: linear-gradient(135deg, #ffffff 30%, #E51D2D 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .text-gradient-blue {
-      background: linear-gradient(135deg, #ffffff 30%, #6366f1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
@@ -91,7 +78,7 @@
         if (ref.current) {
           ref.current.innerHTML = '';
           if (window.lucide && window.lucide.icons[name]) {
-            const iconNode = lucide.createIcons({
+            lucide.createIcons({
               icons: { [name]: lucide.icons[name] },
               nameAttr: 'data-lucide'
             });
@@ -171,10 +158,11 @@
       );
     }
 
-    // Interactive Modal Popup
+    // Interactive Modal Popup with Live Email Routing
     function BookingModal() {
       const { isOpen, closeModal, initialService, initialBudget } = useContext(ModalContext);
       const [submitted, setSubmitted] = useState(false);
+      const [loading, setLoading] = useState(false);
       const [formData, setFormData] = useState({ name: '', email: '', service: 'General Strategy', details: '' });
 
       useEffect(() => {
@@ -185,13 +173,42 @@
 
       if (!isOpen) return null;
 
-      const handleSubmit = (e) => {
+      const handleSubmit = async (e) => {
         e.preventDefault();
-        setSubmitted(true);
-        setTimeout(() => {
-          setSubmitted(false);
-          closeModal();
-        }, 2500);
+        setLoading(true);
+
+        try {
+          const response = await fetch("https://formspree.io/f/xvzevpbl", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({
+              name: formData.name,
+              email: formData.email,
+              serviceRequested: formData.service,
+              estimatedBudget: initialBudget ? `$${initialBudget}` : "Custom Quote",
+              projectDetails: formData.details,
+              notificationRecipient: "tonikrossgala@gmail.com"
+            }),
+          });
+
+          if (response.ok) {
+            setSubmitted(true);
+            setTimeout(() => {
+              setSubmitted(false);
+              closeModal();
+            }, 3000);
+          } else {
+            alert("Submission error. Please check details or email tonikrossgala@gmail.com directly.");
+          }
+        } catch (error) {
+          console.error("Form error:", error);
+          alert("Network error occurred. Please try again later.");
+        } finally {
+          setLoading(false);
+        }
       };
 
       return (
@@ -209,8 +226,10 @@
                 <div className="w-16 h-16 bg-[#E51D2D]/20 border border-[#E51D2D] rounded-full flex items-center justify-center mx-auto text-[#E51D2D]">
                   <Icon name="check" size={32} />
                 </div>
-                <h3 className="text-2xl font-bold text-white">Strategy Call Requested!</h3>
-                <p className="text-white/60 text-sm">We've received your inquiry and will reach out within 24 hours.</p>
+                <h3 className="text-2xl font-bold text-white">Strategy Request Sent!</h3>
+                <p className="text-white/60 text-sm">
+                  We've logged your request and sent a notification to tonikrossgala@gmail.com. Expect a response shortly!
+                </p>
               </div>
             ) : (
               <>
@@ -221,7 +240,7 @@
                   </Pill>
                   <h3 className="text-2xl font-extrabold text-white">Book A Strategy Session</h3>
                   <p className="text-sm text-white/50 mt-1">
-                    {initialBudget ? `Estimated Bundle Total: $${initialBudget}` : "Tell us about your brand goals and requirements."}
+                    {initialBudget ? `Estimated Bundle Total: $${initialBudget}` : "Tell us about your brand goals and project requirements."}
                   </p>
                 </div>
 
@@ -278,9 +297,10 @@
 
                   <button 
                     type="submit" 
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#E51D2D]/30 mt-2"
+                    disabled={loading}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#E51D2D]/30 mt-2 disabled:opacity-50 cursor-pointer"
                   >
-                    Confirm Booking
+                    {loading ? "Transmitting..." : "Confirm Booking"}
                   </button>
                 </form>
               </>
@@ -336,7 +356,7 @@
                 </a>
                 <button 
                   onClick={() => openModal('General Strategy')} 
-                  className="group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] hover:opacity-95 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#E51D2D]/25 active:scale-95"
+                  className="group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] hover:opacity-95 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#E51D2D]/25 active:scale-95 cursor-pointer"
                 >
                   Book A Strategy Call
                   <Icon name="arrow-right" size={15} />
@@ -349,7 +369,6 @@
             </div>
           </div>
 
-          {/* Mobile Nav Dropdown */}
           {open && (
             <div className="md:hidden mt-2 rounded-2xl p-5 glass-panel border border-white/10 flex flex-col gap-3">
               {links.map((l) => (
@@ -375,7 +394,6 @@
 
       return (
         <section id="top" className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-5 sm:px-8 overflow-hidden">
-          {/* Ambient Lighting Gradients */}
           <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[800px] rounded-full opacity-30 bg-gradient-to-tr from-[#2B2A96] to-[#E51D2D] blur-[120px]" />
           <div className="pointer-events-none absolute bottom-10 right-10 h-[300px] w-[300px] rounded-full opacity-20 bg-[#E51D2D] blur-[100px]" />
 
@@ -388,7 +406,7 @@
             </Reveal>
 
             <Reveal delay={100}>
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] text-balance">
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
                 Digital Creation at <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E51D2D] via-purple-400 to-[#6366f1]">
                   Light Speed.
@@ -406,7 +424,7 @@
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button 
                   onClick={() => openModal('Brand Scaling')} 
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-all duration-200 hover:bg-white/90 hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-all duration-200 hover:bg-white/90 hover:scale-105 active:scale-95 shadow-xl shadow-white/10 cursor-pointer"
                 >
                   Scale Your Brand
                   <Icon name="arrow-right" size={16} />
@@ -418,7 +436,6 @@
               </div>
             </Reveal>
 
-            {/* Hero Image Showcase Grid */}
             <Reveal delay={400} className="mt-16 sm:mt-20">
               <div className="relative mx-auto max-w-5xl rounded-2xl p-2 glass-panel border border-white/10 shadow-2xl">
                 <div className="relative rounded-xl overflow-hidden aspect-video bg-[#0b0d12]">
@@ -429,7 +446,6 @@
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-transparent to-transparent" />
                   
-                  {/* Overlay Floating Stats */}
                   <div className="absolute bottom-6 left-6 right-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {[
                       { label: "Projects Completed", value: "140+" },
@@ -451,59 +467,17 @@
       );
     }
 
-    // Services Section with Interactive Selection
+    // Services Section
     function Services() {
       const { openModal } = useContext(ModalContext);
 
       const services = [
-        {
-          id: "video",
-          title: "Cinematic Video Editing",
-          icon: "clapperboard",
-          image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
-          desc: "Retain viewer attention with high-pacing, custom color grading, sound design, and viral retention editing for YouTube, Reels, and Ads.",
-          tags: ["Retention Editing", "Color Grading", "Sound FX", "Shorts & Reels"]
-        },
-        {
-          id: "coding",
-          title: "Vibe Coding & App Development",
-          icon: "code",
-          image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
-          desc: "Rapid prototyping and full-stack web applications built at light speed using modern AI workflows, React, Next.js, and Supabase.",
-          tags: ["AI-Assisted Dev", "Full-Stack MVPs", "React / Next.js", "API Integrations"]
-        },
-        {
-          id: "thumbnails",
-          title: "High-CTR Thumbnail Design",
-          icon: "image",
-          image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
-          desc: "Psychologically optimized thumbnail visual artwork designed to dominate YouTube feeds and maximize click-through rates.",
-          tags: ["Visual Hierarchy", "CTR Optimization", "Photoshop Art", "3D Rendering"]
-        },
-        {
-          id: "web",
-          title: "Web Design & Development",
-          icon: "layout",
-          image: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80",
-          desc: "Pixel-perfect, ultra-fast websites engineered to build brand authority and convert visitors into paying high-ticket clients.",
-          tags: ["UI/UX Design", "Tailwind CSS", "Conversion Copy", "Figma Design"]
-        },
-        {
-          id: "upwork",
-          title: "Upwork Mentorship Program",
-          icon: "award",
-          image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
-          desc: "1-on-1 coaching that guides freelancers to Top Rated status, high-converting proposal templates, and $10k+/mo contracts.",
-          tags: ["Profile Optimization", "Proposal Mastery", "Client Acquisition", "Pricing Strategy"]
-        },
-        {
-          id: "brand",
-          title: "Full Brand Scaling & Strategy",
-          icon: "trending-up",
-          image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
-          desc: "End-to-end digital content strategy, omni-channel distribution systems, and visual assets designed for aggressive digital growth.",
-          tags: ["Content Engine", "Omni-Channel", "Audience Growth", "Monetization"]
-        }
+        { id: "video", title: "Cinematic Video Editing", icon: "clapperboard", image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80", desc: "Retain viewer attention with high-pacing, custom color grading, sound design, and viral retention editing for YouTube, Reels, and Ads.", tags: ["Retention Editing", "Color Grading", "Sound FX", "Shorts & Reels"] },
+        { id: "coding", title: "Vibe Coding & App Development", icon: "code", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80", desc: "Rapid prototyping and full-stack web applications built at light speed using modern AI workflows, React, Next.js, and Supabase.", tags: ["AI-Assisted Dev", "Full-Stack MVPs", "React / Next.js", "API Integrations"] },
+        { id: "thumbnails", title: "High-CTR Thumbnail Design", icon: "image", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80", desc: "Psychologically optimized thumbnail visual artwork designed to dominate YouTube feeds and maximize click-through rates.", tags: ["Visual Hierarchy", "CTR Optimization", "Photoshop Art", "3D Rendering"] },
+        { id: "web", title: "Web Design & Development", icon: "layout", image: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80", desc: "Pixel-perfect, ultra-fast websites engineered to build brand authority and convert visitors into paying high-ticket clients.", tags: ["UI/UX Design", "Tailwind CSS", "Conversion Copy", "Figma Design"] },
+        { id: "upwork", title: "Upwork Mentorship Program", icon: "award", image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80", desc: "1-on-1 coaching that guides freelancers to Top Rated status, high-converting proposal templates, and $10k+/mo contracts.", tags: ["Profile Optimization", "Proposal Mastery", "Client Acquisition", "Pricing Strategy"] },
+        { id: "brand", title: "Full Brand Scaling & Strategy", icon: "trending-up", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80", desc: "End-to-end digital content strategy, omni-channel distribution systems, and visual assets designed for aggressive digital growth.", tags: ["Content Engine", "Omni-Channel", "Audience Growth", "Monetization"] }
       ];
 
       return (
@@ -517,9 +491,6 @@
               <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
                 Everything your digital presence demands.
               </h2>
-              <p className="mt-4 text-white/50 text-base">
-                No fragmented teams or unreliable freelancers. Monetox is your centralized digital execution engine.
-              </p>
             </div>
           </Reveal>
 
@@ -530,34 +501,20 @@
                   onClick={() => openModal(s.title)}
                   className="glass-card rounded-2xl overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 h-full flex flex-col cursor-pointer"
                 >
-                  {/* Image Container */}
                   <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={s.image} 
-                      alt={s.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100" 
-                    />
+                    <img src={s.image} alt={s.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e12] via-transparent to-transparent" />
                     <div className="absolute top-3 right-3 glass-panel p-2 rounded-xl text-white group-hover:bg-[#E51D2D] transition-colors">
                       <Icon name={s.icon} size={18} className="text-[#E51D2D] group-hover:text-white" />
                     </div>
                   </div>
 
-                  {/* Body Content */}
                   <div className="p-6 flex flex-col flex-1">
-                    <h3 className="text-xl font-bold text-white group-hover:text-[#E51D2D] transition-colors">
-                      {s.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-white/50 leading-relaxed flex-1">
-                      {s.desc}
-                    </p>
-
-                    {/* Tags */}
+                    <h3 className="text-xl font-bold text-white group-hover:text-[#E51D2D] transition-colors">{s.title}</h3>
+                    <p className="mt-2 text-sm text-white/50 leading-relaxed flex-1">{s.desc}</p>
                     <div className="mt-6 flex flex-wrap gap-1.5">
                       {s.tags.map((t, i) => (
-                        <span key={i} className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white/60">
-                          {t}
-                        </span>
+                        <span key={i} className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white/60">{t}</span>
                       ))}
                     </div>
                   </div>
@@ -569,15 +526,13 @@
       );
     }
 
-    // Specialized Upwork Mentorship Feature Spotlight
+    // Upwork Mentorship Feature
     function MentorshipSpotlight() {
       const { openModal } = useContext(ModalContext);
 
       return (
         <section id="mentorship" className="relative py-24 px-5 sm:px-8 max-w-7xl mx-auto">
           <div className="glass-panel rounded-3xl p-8 sm:p-12 border border-[#E51D2D]/30 relative overflow-hidden">
-            <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-[#E51D2D]/10 rounded-full blur-3xl pointer-events-none" />
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
               <Reveal>
                 <div>
@@ -585,7 +540,7 @@
                     <Icon name="check-circle" size={13} />
                     Exclusive Coaching Program
                   </Pill>
-                  <h2 className="mt-5 text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                  <h2 className="mt-5 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
                     Master Upwork & Build Your 6-Figure Agency.
                   </h2>
                   <p className="mt-4 text-white/60 text-base leading-relaxed">
@@ -613,7 +568,7 @@
                   <div className="mt-8">
                     <button 
                       onClick={() => openModal('Upwork Mentorship')} 
-                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 bg-[#E51D2D] hover:bg-[#E51D2D]/90 active:scale-95 text-white font-bold text-sm transition-all shadow-lg shadow-[#E51D2D]/30"
+                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 bg-[#E51D2D] hover:bg-[#E51D2D]/90 active:scale-95 text-white font-bold text-sm transition-all shadow-lg shadow-[#E51D2D]/30 cursor-pointer"
                     >
                       Apply for Mentorship
                       <Icon name="arrow-right" size={16} />
@@ -624,21 +579,7 @@
 
               <Reveal delay={200}>
                 <div className="relative rounded-2xl overflow-hidden glass-card p-4 border border-white/10">
-                  <img 
-                    src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1000&q=80" 
-                    alt="Upwork Mentorship Session" 
-                    className="rounded-xl w-full object-cover h-80"
-                  />
-                  <div className="mt-4 p-4 rounded-xl bg-[#08090a] border border-white/10 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs text-white/40 font-medium">Mentorship Result</div>
-                      <div className="text-lg font-bold text-emerald-400">Top Rated Plus Freelancer</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-white/40 font-medium">Average Monthly Growth</div>
-                      <div className="text-lg font-bold text-white">+340% Revenue</div>
-                    </div>
-                  </div>
+                  <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1000&q=80" alt="Upwork Mentorship Session" className="rounded-xl w-full object-cover h-80" />
                 </div>
               </Reveal>
             </div>
@@ -647,7 +588,7 @@
       );
     }
 
-    // Filterable Visual Portfolio Showcase Section
+    // Portfolio
     function Portfolio() {
       const [filter, setFilter] = useState("all");
       const { openModal } = useContext(ModalContext);
@@ -672,12 +613,9 @@
                   <Icon name="briefcase" size={13} className="text-[#E51D2D]" />
                   Selected Work
                 </Pill>
-                <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
-                  Crafted for high impact.
-                </h2>
+                <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">Crafted for high impact.</h2>
               </div>
 
-              {/* Filter Tabs */}
               <div className="flex flex-wrap gap-2 glass-panel p-1.5 rounded-xl border border-white/10">
                 {[
                   { label: "All Work", id: "all" },
@@ -701,7 +639,6 @@
             </div>
           </Reveal>
 
-          {/* Project Cards Grid */}
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((item, idx) => (
               <Reveal key={idx} delay={idx * 60}>
@@ -710,20 +647,14 @@
                   className="glass-card rounded-2xl overflow-hidden group relative cursor-pointer"
                 >
                   <div className="h-64 overflow-hidden relative">
-                    <img 
-                      src={item.img} 
-                      alt={item.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
+                    <img src={item.img} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-black/20 to-transparent" />
                   </div>
                   <div className="p-5 absolute bottom-0 inset-x-0">
                     <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#E51D2D] text-white">
                       {item.tag}
                     </span>
-                    <h3 className="mt-2 text-lg font-bold text-white group-hover:text-[#E51D2D] transition-colors">
-                      {item.title}
-                    </h3>
+                    <h3 className="mt-2 text-lg font-bold text-white group-hover:text-[#E51D2D] transition-colors">{item.title}</h3>
                   </div>
                 </div>
               </Reveal>
@@ -733,24 +664,12 @@
       );
     }
 
-    // Process Workflow Section
+    // Process
     function Process() {
       const steps = [
-        {
-          num: "01",
-          title: "Discovery & Blueprint",
-          desc: "We analyze your brand goals, target audience, and scope required deliverables in a 30-min strategy call."
-        },
-        {
-          num: "02",
-          title: "Agile Execution & Vibe Drafts",
-          desc: "Our team deploys video edits, website prototypes, or Upwork mentorship frameworks within 48 to 72 hours."
-        },
-        {
-          num: "03",
-          title: "Polishing & Final Scale",
-          desc: "We refine based on your feedback, optimize CTR and conversions, and deploy production-ready assets."
-        }
+        { num: "01", title: "Discovery & Blueprint", desc: "We analyze your brand goals, target audience, and scope required deliverables in a 30-min strategy call." },
+        { num: "02", title: "Agile Execution & Vibe Drafts", desc: "Our team deploys video edits, website prototypes, or Upwork mentorship frameworks within 48 to 72 hours." },
+        { num: "03", title: "Polishing & Final Scale", desc: "We refine based on your feedback, optimize CTR and conversions, and deploy production-ready assets." }
       ];
 
       return (
@@ -761,9 +680,7 @@
                 <Icon name="git-branch" size={13} className="text-[#E51D2D]" />
                 How We Operate
               </Pill>
-              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
-                Streamlined. Zero Friction.
-              </h2>
+              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">Streamlined. Zero Friction.</h2>
             </div>
           </Reveal>
 
@@ -782,7 +699,7 @@
       );
     }
 
-    // Dynamic Pricing Calculator Section
+    // Dynamic Pricing Engine
     function DynamicPricing() {
       const [selectedServices, setSelectedServices] = useState(["video"]);
       const { openModal } = useContext(ModalContext);
@@ -818,17 +735,11 @@
                 <Icon name="calculator" size={13} className="text-[#E51D2D]" />
                 Interactive Pricing Engine
               </Pill>
-              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
-                Customize Your Investment.
-              </h2>
-              <p className="mt-3 text-white/50 text-sm">
-                Select the core services you require to calculate an estimated project bundle cost.
-              </p>
+              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">Customize Your Investment.</h2>
             </div>
           </Reveal>
 
           <div className="mt-12 glass-panel p-6 sm:p-10 rounded-3xl border border-white/10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Options Selection */}
             <div className="lg:col-span-7 space-y-3">
               <h3 className="text-lg font-bold text-white mb-4">Select Required Services:</h3>
               {pricingOptions.map((opt) => {
@@ -838,9 +749,7 @@
                     key={opt.id}
                     onClick={() => toggleService(opt.id)}
                     className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between border ${
-                      isChecked 
-                        ? "bg-[#E51D2D]/15 border-[#E51D2D] text-white" 
-                        : "glass-card border-white/5 text-white/60 hover:border-white/20"
+                      isChecked ? "bg-[#E51D2D]/15 border-[#E51D2D] text-white" : "glass-card border-white/5 text-white/60 hover:border-white/20"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -857,15 +766,9 @@
               })}
             </div>
 
-            {/* Estimated Total Display */}
             <div className="lg:col-span-5 glass-card p-8 rounded-2xl text-center border border-white/10 flex flex-col justify-center">
               <span className="text-xs uppercase font-bold tracking-widest text-white/40">Estimated Investment</span>
-              <div className="mt-3 text-5xl font-extrabold text-white">
-                ${totalPrice.toLocaleString()}
-              </div>
-              <p className="mt-2 text-xs text-white/40">
-                Custom retainer discounts applied automatically for multi-service bundles.
-              </p>
+              <div className="mt-3 text-5xl font-extrabold text-white">${totalPrice.toLocaleString()}</div>
               
               <button 
                 onClick={() => openModal('Custom Bundle Package', totalPrice)} 
@@ -879,7 +782,7 @@
       );
     }
 
-    // CTA Banner
+    // CTA Section
     function ContactCTA() {
       const { openModal } = useContext(ModalContext);
 
@@ -892,20 +795,17 @@
                 <h2 className="mt-6 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
                   Ready to build something legendary?
                 </h2>
-                <p className="mt-4 text-white/60 text-sm sm:text-base">
-                  Whether you need high-ticket video editing, full web development, or Upwork mentorship, Monetox is ready.
-                </p>
 
                 <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
                   <a 
-                    href="mailto:hello@monetox.com" 
+                    href="mailto:tonikrossgala@gmail.com?subject=Inquiry%20from%20Monetox" 
                     className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black hover:bg-white/90 active:scale-95 transition-all"
                   >
                     <Icon name="mail" size={16} />
                     Direct Email Us
                   </a>
                   <button 
-                    onClick={() => openModal('General Call')} 
+                    onClick={() => openModal('General Strategy Call')} 
                     className="inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-bold text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
                   >
                     Book A Call
@@ -936,7 +836,7 @@
       );
     }
 
-    // Main App Component with State Provider
+    // Main App Container
     function App() {
       const [isOpen, setIsOpen] = useState(false);
       const [initialService, setInitialService] = useState('General Strategy');
