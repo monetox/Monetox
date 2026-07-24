@@ -17,6 +17,9 @@
   
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -28,7 +31,6 @@
       overflow-x: hidden;
     }
 
-    /* Custom Glassmorphism */
     .glass-panel {
       background: rgba(18, 20, 26, 0.65);
       backdrop-filter: blur(16px);
@@ -46,33 +48,10 @@
       box-shadow: 0 10px 30px -10px rgba(229, 29, 45, 0.15);
     }
 
-    /* Gradient Text */
-    .text-gradient-red {
-      background: linear-gradient(135deg, #ffffff 30%, #E51D2D 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .text-gradient-blue {
-      background: linear-gradient(135deg, #ffffff 30%, #6366f1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #060709;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1a1c23;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #E51D2D;
-    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #060709; }
+    ::-webkit-scrollbar-thumb { background: #1a1c23; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #E51D2D; }
   </style>
 </head>
 <body class="antialiased selection:bg-[#E51D2D]/30 selection:text-white">
@@ -80,6 +59,13 @@
 
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
+
+    // --- SUPABASE BACKEND CONFIGURATION ---
+    const SUPABASE_URL = "https://bgijbonquvlfhcqxgyez.supabase.co"; 
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaWpib25xdXZsZmhjcXhneWV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5MTI4MTIsImV4cCI6MjEwMDQ4ODgxMn0.nN7Ty0wV2712JZTdiQ663DGSS8BZj-fopY7s9_SHAys"; 
+
+    // Create Supabase Client Connection
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     // Direct GitHub Raw image URL for your uploaded logo
     const LOGO_URL = "https://raw.githubusercontent.com/YourUsername/YourRepo/main/monetox.png";
@@ -103,13 +89,13 @@
         <i 
           ref={ref} 
           data-lucide={name} 
-          style={{ width: size, height: size, color: color, strokeWidth: strokeWidth, display: 'inline-flex', alignItems: 'center', justifyCenter: 'center' }}
+          style={{ width: size, height: size, color: color, strokeWidth: strokeWidth, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           className={className}
         />
       );
     }
 
-    // Intersection Observer Reveal Component
+    // Reveal Animation
     function Reveal({ children, delay = 0, className = "" }) {
       const ref = useRef(null);
       const [visible, setVisible] = useState(false);
@@ -145,7 +131,7 @@
       );
     }
 
-    // Logo Component using image from GitHub
+    // Logo Component
     function Logo({ size = 32, showText = true }) {
       return (
         <div className="relative flex items-center gap-2.5 shrink-0 group cursor-pointer">
@@ -155,12 +141,10 @@
             style={{ height: size, width: 'auto' }}
             className="object-contain transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
-              // Fallback to text icon if URL isn't configured yet
               e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
+              if(e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
             }}
           />
-          {/* Fallback element */}
           <div 
             className="hidden items-center justify-center rounded-xl bg-gradient-to-br from-[#E51D2D] to-[#2B2A96] p-0.5"
             style={{ width: size, height: size }}
@@ -187,7 +171,7 @@
       );
     }
 
-    // Navigation Header
+    // Header
     function Header() {
       const [open, setOpen] = useState(false);
       const [scrolled, setScrolled] = useState(false);
@@ -208,16 +192,9 @@
 
       return (
         <header className="fixed top-0 inset-x-0 z-50 px-4 sm:px-8 pt-4">
-          <div
-            className={`mx-auto max-w-7xl rounded-2xl transition-all duration-300 ${
-              scrolled ? "glass-panel py-3 px-5 shadow-2xl" : "bg-transparent py-4 px-2"
-            }`}
-          >
+          <div className={`mx-auto max-w-7xl rounded-2xl transition-all duration-300 ${scrolled ? "glass-panel py-3 px-5 shadow-2xl" : "bg-transparent py-4 px-2"}`}>
             <div className="flex items-center justify-between">
-              <a href="#top">
-                <Logo size={36} />
-              </a>
-
+              <a href="#top"><Logo size={36} /></a>
               <nav className="hidden md:flex items-center gap-1 glass-panel px-4 py-1.5 rounded-full border border-white/10">
                 {links.map((l) => (
                   <a key={l.label} href={l.href} className="rounded-full px-4 py-1.5 text-[13.5px] font-medium text-white/70 transition-all duration-200 hover:text-white hover:bg-white/10">
@@ -225,24 +202,20 @@
                   </a>
                 ))}
               </nav>
-
               <div className="hidden md:flex items-center gap-3">
                 <a href="#pricing" className="text-[13.5px] font-medium text-white/70 hover:text-white px-3 py-1.5 transition-colors">
                   Calculator
                 </a>
-                <a href="#contact" className="group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] hover:opacity-95 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#E51D2D]/25">
-                  Book A Strategy Call
+                <a href="#pricing" className="group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] hover:opacity-95 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#E51D2D]/25">
+                  Book Strategy Call
                   <Icon name="arrow-right" size={15} />
                 </a>
               </div>
-
               <button className="md:hidden text-white/80 p-2" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
                 <Icon name={open ? "x" : "menu"} size={22} />
               </button>
             </div>
           </div>
-
-          {/* Mobile Nav Dropdown */}
           {open && (
             <div className="md:hidden mt-2 rounded-2xl p-5 glass-panel border border-white/10 flex flex-col gap-3">
               {links.map((l) => (
@@ -250,7 +223,7 @@
                   {l.label}
                 </a>
               ))}
-              <a href="#contact" onClick={() => setOpen(false)} className="mt-2 text-center rounded-xl py-3 text-[14px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96]">
+              <a href="#pricing" onClick={() => setOpen(false)} className="mt-2 text-center rounded-xl py-3 text-[14px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96]">
                 Book Strategy Call
               </a>
             </div>
@@ -263,10 +236,7 @@
     function Hero() {
       return (
         <section id="top" className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-5 sm:px-8 overflow-hidden">
-          {/* Ambient Lighting Gradients */}
           <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[800px] rounded-full opacity-30 bg-gradient-to-tr from-[#2B2A96] to-[#E51D2D] blur-[120px]" />
-          <div className="pointer-events-none absolute bottom-10 right-10 h-[300px] w-[300px] rounded-full opacity-20 bg-[#E51D2D] blur-[100px]" />
-
           <div className="relative mx-auto max-w-5xl text-center">
             <Reveal>
               <Pill className="mx-auto mb-6">
@@ -274,61 +244,29 @@
                 Full-Stack Digital Agency & Mentorship
               </Pill>
             </Reveal>
-
             <Reveal delay={100}>
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] text-balance">
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
                 Digital Creation at <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E51D2D] via-purple-400 to-[#6366f1]">
                   Light Speed.
                 </span>
               </h1>
             </Reveal>
-
             <Reveal delay={200}>
               <p className="mx-auto mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-white/60">
                 We engineer high-converting websites, craft viral video edits, write vibe code apps, and coach freelancers to $10k+/mo on Upwork.
               </p>
             </Reveal>
-
             <Reveal delay={300}>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="#contact" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-all duration-200 hover:bg-white/90 hover:scale-105 shadow-xl shadow-white/10">
+                <a href="#pricing" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-all hover:bg-white/90 hover:scale-105 shadow-xl">
                   Scale Your Brand
                   <Icon name="arrow-right" size={16} />
                 </a>
-                <a href="#mentorship" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-white/10 hover:border-white/20">
+                <a href="#mentorship" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-semibold text-white transition-all hover:bg-white/10">
                   <Icon name="graduation-cap" size={16} className="text-[#E51D2D]" />
                   Upwork Mentorship
                 </a>
-              </div>
-            </Reveal>
-
-            {/* Hero Image Showcase Grid */}
-            <Reveal delay={400} className="mt-16 sm:mt-20">
-              <div className="relative mx-auto max-w-5xl rounded-2xl p-2 glass-panel border border-white/10 shadow-2xl">
-                <div className="relative rounded-xl overflow-hidden aspect-video bg-[#0b0d12]">
-                  <img 
-                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80" 
-                    alt="Monetox Team Collaborating" 
-                    className="w-full h-full object-cover opacity-80"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-transparent to-transparent" />
-                  
-                  {/* Overlay Floating Stats */}
-                  <div className="absolute bottom-6 left-6 right-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {[
-                      { label: "Projects Completed", value: "140+" },
-                      { label: "Upwork Earnings Generated", value: "$350k+" },
-                      { label: "Avg Turnaround", value: "48 Hours" },
-                      { label: "Client CSAT", value: "99.2%" }
-                    ].map((s, i) => (
-                      <div key={i} className="glass-panel rounded-xl p-3 text-left">
-                        <div className="text-lg sm:text-xl font-extrabold text-white">{s.value}</div>
-                        <div className="text-[11px] text-white/50 font-medium">{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </Reveal>
           </div>
@@ -336,111 +274,28 @@
       );
     }
 
-    // Comprehensive Services Section with Images
+    // Services Section
     function Services() {
       const services = [
-        {
-          id: "video",
-          title: "Cinematic Video Editing",
-          icon: "clapperboard",
-          image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
-          desc: "Retain viewer attention with high-pacing, custom color grading, sound design, and viral retention editing for YouTube, Reels, and Ads.",
-          tags: ["Retention Editing", "Color Grading", "Sound FX", "Shorts & Reels"]
-        },
-        {
-          id: "coding",
-          title: "Vibe Coding & App Development",
-          icon: "code",
-          image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
-          desc: "Rapid prototyping and full-stack web applications built at light speed using modern AI workflows, React, Next.js, and Supabase.",
-          tags: ["AI-Assisted Dev", "Full-Stack MVPs", "React / Next.js", "API Integrations"]
-        },
-        {
-          id: "thumbnails",
-          title: "High-CTR Thumbnail Design",
-          icon: "image",
-          image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
-          desc: "Psychologically optimized thumbnail visual artwork designed to dominate YouTube feeds and maximize click-through rates.",
-          tags: ["Visual Hierarchy", "CTR Optimization", "Photoshop Art", "3D Rendering"]
-        },
-        {
-          id: "web",
-          title: "Web Design & Development",
-          icon: "layout",
-          image: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80",
-          desc: "Pixel-perfect, ultra-fast websites engineered to build brand authority and convert visitors into paying high-ticket clients.",
-          tags: ["UI/UX Design", "Tailwind CSS", "Conversion Copy", "Figma Design"]
-        },
-        {
-          id: "upwork",
-          title: "Upwork Mentorship Program",
-          icon: "award",
-          image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
-          desc: "1-on-1 coaching that guides freelancers to Top Rated status, high-converting proposal templates, and $10k+/mo contracts.",
-          tags: ["Profile Optimization", "Proposal Mastery", "Client Acquisition", "Pricing Strategy"]
-        },
-        {
-          id: "brand",
-          title: "Full Brand Scaling & Strategy",
-          icon: "trending-up",
-          image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
-          desc: "End-to-end digital content strategy, omni-channel distribution systems, and visual assets designed for aggressive digital growth.",
-          tags: ["Content Engine", "Omni-Channel", "Audience Growth", "Monetization"]
-        }
+        { id: "video", title: "Cinematic Video Editing", icon: "clapperboard", image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80", desc: "Retain viewer attention with custom color grading, sound design, and viral retention editing.", tags: ["Retention", "Sound FX", "Shorts"] },
+        { id: "coding", title: "Vibe Coding & App Development", icon: "code", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80", desc: "Rapid prototyping and full-stack web applications built at light speed using modern frameworks.", tags: ["AI-Assisted", "MVPs", "React"] },
+        { id: "web", title: "Web Design & Development", icon: "layout", image: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80", desc: "Pixel-perfect, ultra-fast websites engineered to build brand authority and convert visitors.", tags: ["UI/UX", "Tailwind CSS", "Figma"] }
       ];
 
       return (
-        <section id="services" className="relative py-28 px-5 sm:px-8 max-w-7xl mx-auto">
+        <section id="services" className="relative py-20 px-5 sm:px-8 max-w-7xl mx-auto">
           <Reveal>
             <div className="text-center max-w-2xl mx-auto">
-              <Pill>
-                <Icon name="layers" size={13} className="text-[#E51D2D]" />
-                Our Core Capabilities
-              </Pill>
-              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
-                Everything your digital presence demands.
-              </h2>
-              <p className="mt-4 text-white/50 text-base">
-                No fragmented teams or unreliable freelancers. Monetox is your centralized digital execution engine.
-              </p>
+              <Pill><Icon name="layers" size={13} className="text-[#E51D2D]" /> Our Capabilities</Pill>
+              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">Everything your brand demands.</h2>
             </div>
           </Reveal>
-
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
             {services.map((s, idx) => (
               <Reveal key={s.id} delay={idx * 80}>
-                <div className="glass-card rounded-2xl overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 h-full flex flex-col">
-                  {/* Image Container */}
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={s.image} 
-                      alt={s.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100" 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e12] via-transparent to-transparent" />
-                    <div className="absolute top-3 right-3 glass-panel p-2 rounded-xl text-white">
-                      <Icon name={s.icon} size={18} className="text-[#E51D2D]" />
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-6 flex flex-col flex-1">
-                    <h3 className="text-xl font-bold text-white group-hover:text-[#E51D2D] transition-colors">
-                      {s.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-white/50 leading-relaxed flex-1">
-                      {s.desc}
-                    </p>
-
-                    {/* Tags */}
-                    <div className="mt-6 flex flex-wrap gap-1.5">
-                      {s.tags.map((t, i) => (
-                        <span key={i} className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white/60">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <div className="glass-card rounded-2xl overflow-hidden h-full flex flex-col p-6">
+                  <h3 className="text-xl font-bold text-white">{s.title}</h3>
+                  <p className="mt-2 text-sm text-white/50">{s.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -449,153 +304,76 @@
       );
     }
 
-    // Specialized Upwork Mentorship Feature Spotlight
-    function MentorshipSpotlight() {
-      return (
-        <section id="mentorship" className="relative py-24 px-5 sm:px-8 max-w-7xl mx-auto">
-          <div className="glass-panel rounded-3xl p-8 sm:p-12 border border-[#E51D2D]/30 relative overflow-hidden">
-            {/* Background Accent */}
-            <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-[#E51D2D]/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-              <Reveal>
-                <div>
-                  <Pill className="border-[#E51D2D]/40 text-[#E51D2D]">
-                    <Icon name="check-circle" size={13} />
-                    Exclusive Coaching Program
-                  </Pill>
-                  <h2 className="mt-5 text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                    Master Upwork & Build Your 6-Figure Agency.
-                  </h2>
-                  <p className="mt-4 text-white/60 text-base leading-relaxed">
-                    Stop competing on price. Learn our exact proposal frameworks, profile optimization blueprints, and high-ticket closing scripts that generated over $350k+.
-                  </p>
-
-                  <div className="mt-8 space-y-4">
-                    {[
-                      { title: "Profile Revamp & Ranking Secrets", desc: "Position yourself as an elite specialist to get invited to top jobs." },
-                      { title: "High-CTR Proposal Templates", desc: "Win clients before competitors even reply with custom video pitches." },
-                      { title: "High-Ticket Client Negotiation", desc: "How to charge $2k–$10k per project on Upwork effortlessly." }
-                    ].map((item, i) => (
-                      <div key={i} className="flex gap-3 items-start">
-                        <div className="p-1 rounded-full bg-[#E51D2D]/20 text-[#E51D2D] mt-0.5">
-                          <Icon name="check" size={14} />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-white">{item.title}</h4>
-                          <p className="text-xs text-white/50">{item.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-8">
-                    <a href="#contact" className="inline-flex items-center gap-2 rounded-full px-6 py-3 bg-[#E51D2D] hover:bg-[#E51D2D]/90 text-white font-bold text-sm transition-all shadow-lg shadow-[#E51D2D]/30">
-                      Apply for Mentorship
-                      <Icon name="arrow-right" size={16} />
-                    </a>
-                  </div>
-                </div>
-              </Reveal>
-
-              <Reveal delay={200}>
-                <div className="relative rounded-2xl overflow-hidden glass-card p-4 border border-white/10">
-                  <img 
-                    src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1000&q=80" 
-                    alt="Upwork Mentorship Session" 
-                    className="rounded-xl w-full object-cover h-80"
-                  />
-                  <div className="mt-4 p-4 rounded-xl bg-[#08090a] border border-white/10 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs text-white/40 font-medium">Mentorship Result</div>
-                      <div className="text-lg font-bold text-emerald-400">Top Rated Plus Freelancer</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-white/40 font-medium">Average Monthly Growth</div>
-                      <div className="text-lg font-bold text-white">+340% Revenue</div>
-                    </div>
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    // Filterable Visual Portfolio Showcase Section
+    // Dynamic Portfolio Section (Connects to Supabase Database)
     function Portfolio() {
       const [filter, setFilter] = useState("all");
+      const [projects, setProjects] = useState([]);
+      const [loading, setLoading] = useState(true);
 
-      const projects = [
-        { title: "SaaS Vibe Code MVP", cat: "coding", img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80", tag: "Vibe Coding" },
-        { title: "Gaming Channel Rebrand & Cuts", cat: "video", img: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80", tag: "Video Edit" },
-        { title: "FinTech Platform Design", cat: "web", img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80", tag: "Web Design" },
-        { title: "High CTR Viral Thumbnails", cat: "thumbnails", img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80", tag: "Thumbnails" },
-        { title: "Upwork $0 to $10k Roadmap", cat: "mentorship", img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80", tag: "Mentorship" },
-        { title: "AI Dashboard Prototyping", cat: "coding", img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80", tag: "App Dev" }
+      const fallbackProjects = [
+        { title: "SaaS Vibe Code MVP", category: "coding", image_url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80", tag: "Vibe Coding" },
+        { title: "Gaming Channel Rebrand", category: "video", image_url: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80", tag: "Video Edit" },
+        { title: "FinTech Platform Design", category: "web", image_url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80", tag: "Web Design" }
       ];
 
-      const filtered = filter === "all" ? projects : projects.filter(p => p.cat === filter);
+      useEffect(() => {
+        async function fetchPortfolio() {
+          if (!supabaseClient) {
+            setProjects(fallbackProjects);
+            setLoading(false);
+            return;
+          }
+
+          try {
+            const { data, error } = await supabaseClient.from('portfolio').select('*');
+            if (error || !data || data.length === 0) {
+              setProjects(fallbackProjects);
+            } else {
+              setProjects(data);
+            }
+          } catch (err) {
+            setProjects(fallbackProjects);
+          } finally {
+            setLoading(false);
+          }
+        }
+        fetchPortfolio();
+      }, []);
+
+      const filtered = filter === "all" ? projects : projects.filter(p => p.category === filter);
 
       return (
         <section id="work" className="py-24 px-5 sm:px-8 max-w-7xl mx-auto">
           <Reveal>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <Pill>
-                  <Icon name="briefcase" size={13} className="text-[#E51D2D]" />
-                  Selected Work
-                </Pill>
-                <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
-                  Crafted for high impact.
-                </h2>
+                <Pill><Icon name="briefcase" size={13} className="text-[#E51D2D]" /> Portfolio</Pill>
+                <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">Crafted for high impact.</h2>
               </div>
-
-              {/* Filter Tabs */}
-              <div className="flex flex-wrap gap-2 glass-panel p-1.5 rounded-xl border border-white/10">
-                {[
-                  { label: "All Work", id: "all" },
-                  { label: "Video", id: "video" },
-                  { label: "Vibe Code", id: "coding" },
-                  { label: "Web", id: "web" },
-                  { label: "Thumbnails", id: "thumbnails" },
-                  { label: "Mentorship", id: "mentorship" },
-                ].map((t) => (
+              <div className="flex flex-wrap gap-2 glass-panel p-1.5 rounded-xl">
+                {["all", "video", "coding", "web"].map((cat) => (
                   <button
-                    key={t.id}
-                    onClick={() => setFilter(t.id)}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      filter === t.id ? "bg-[#E51D2D] text-white shadow-md" : "text-white/60 hover:text-white"
-                    }`}
+                    key={cat}
+                    onClick={() => setFilter(cat)}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase ${filter === cat ? "bg-[#E51D2D] text-white" : "text-white/60"}`}
                   >
-                    {t.label}
+                    {cat}
                   </button>
                 ))}
               </div>
             </div>
           </Reveal>
 
-          {/* Project Cards Grid */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
             {filtered.map((item, idx) => (
               <Reveal key={idx} delay={idx * 60}>
                 <div className="glass-card rounded-2xl overflow-hidden group relative">
                   <div className="h-64 overflow-hidden relative">
-                    <img 
-                      src={item.img} 
-                      alt={item.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-black/20 to-transparent" />
+                    <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   </div>
-                  <div className="p-5 absolute bottom-0 inset-x-0">
-                    <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#E51D2D] text-white">
-                      {item.tag}
-                    </span>
-                    <h3 className="mt-2 text-lg font-bold text-white group-hover:text-[#E51D2D] transition-colors">
-                      {item.title}
-                    </h3>
+                  <div className="p-5">
+                    <span className="text-[10px] font-bold uppercase px-2 py-1 rounded bg-[#E51D2D] text-white">{item.tag || item.category}</span>
+                    <h3 className="mt-2 text-lg font-bold text-white">{item.title}</h3>
                   </div>
                 </div>
               </Reveal>
@@ -605,72 +383,24 @@
       );
     }
 
-    // Process Workflow Section
-    function Process() {
-      const steps = [
-        {
-          num: "01",
-          title: "Discovery & Blueprint",
-          desc: "We analyze your brand goals, target audience, and scope required deliverables in a 30-min strategy call."
-        },
-        {
-          num: "02",
-          title: "Agile Execution & Vibe Drafts",
-          desc: "Our team deploys video edits, website prototypes, or Upwork mentorship frameworks within 48 to 72 hours."
-        },
-        {
-          num: "03",
-          title: "Polishing & Final Scale",
-          desc: "We refine based on your feedback, optimize CTR and conversions, and deploy production-ready assets."
-        }
-      ];
-
-      return (
-        <section id="process" className="py-24 px-5 sm:px-8 max-w-7xl mx-auto border-t border-white/5">
-          <Reveal>
-            <div className="text-center max-w-2xl mx-auto">
-              <Pill>
-                <Icon name="git-branch" size={13} className="text-[#E51D2D]" />
-                How We Operate
-              </Pill>
-              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
-                Streamlined. Zero Friction.
-              </h2>
-            </div>
-          </Reveal>
-
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map((s, idx) => (
-              <Reveal key={s.num} delay={idx * 100}>
-                <div className="glass-panel p-8 rounded-2xl relative border border-white/10 flex flex-col h-full">
-                  <div className="text-4xl font-extrabold text-[#E51D2D] opacity-80 mb-4">{s.num}</div>
-                  <h3 className="text-xl font-bold text-white mb-2">{s.title}</h3>
-                  <p className="text-sm text-white/50 leading-relaxed">{s.desc}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      );
-    }
-
-    // Dynamic Pricing Calculator Section
+    // Dynamic Pricing & Backend Lead Submission Component
     function DynamicPricing() {
       const [selectedServices, setSelectedServices] = useState(["video"]);
+      const [name, setName] = useState("");
+      const [email, setEmail] = useState("");
+      const [submitting, setSubmitting] = useState(false);
+      const [message, setMessage] = useState(null);
 
       const pricingOptions = [
         { id: "video", label: "Video Editing Package", price: 1200 },
         { id: "coding", label: "Vibe Code / MVP App", price: 2500 },
         { id: "web", label: "Custom Agency Web Design", price: 1800 },
-        { id: "thumbnails", label: "Monthly Thumbnail Pack (10x)", price: 600 },
         { id: "mentorship", label: "1-on-1 Upwork Coaching", price: 950 }
       ];
 
       const toggleService = (id) => {
         if (selectedServices.includes(id)) {
-          if (selectedServices.length > 1) {
-            setSelectedServices(selectedServices.filter(s => s !== id));
-          }
+          if (selectedServices.length > 1) setSelectedServices(selectedServices.filter(s => s !== id));
         } else {
           setSelectedServices([...selectedServices, id]);
         }
@@ -681,25 +411,53 @@
         return acc + (item ? item.price : 0);
       }, 0);
 
+      // --- SUBMIT LEAD TO SUPABASE BACKEND ---
+      const handleLeadSubmit = async (e) => {
+        e.preventDefault();
+        if (!email || !name) {
+          setMessage({ type: "error", text: "Please fill out both your name and email." });
+          return;
+        }
+
+        setSubmitting(true);
+        setMessage(null);
+
+        try {
+          const { data, error } = await supabaseClient
+            .from('leads')
+            .insert([
+              { 
+                name: name, 
+                email: email, 
+                selected_services: selectedServices.join(", "), 
+                estimated_budget: totalPrice 
+              }
+            ]);
+
+          if (error) {
+            setMessage({ type: "error", text: "Database Error: " + error.message });
+          } else {
+            setMessage({ type: "success", text: "Request Received! We'll contact you shortly." });
+            setName("");
+            setEmail("");
+          }
+        } catch (err) {
+          setMessage({ type: "error", text: "Failed to connect to backend server." });
+        } finally {
+          setSubmitting(false);
+        }
+      };
+
       return (
         <section id="pricing" className="py-24 px-5 sm:px-8 max-w-7xl mx-auto">
           <Reveal>
             <div className="text-center max-w-2xl mx-auto">
-              <Pill>
-                <Icon name="calculator" size={13} className="text-[#E51D2D]" />
-                Interactive Pricing Engine
-              </Pill>
-              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
-                Customize Your Investment.
-              </h2>
-              <p className="mt-3 text-white/50 text-sm">
-                Select the core services you require to calculate an estimated project bundle cost.
-              </p>
+              <Pill><Icon name="calculator" size={13} className="text-[#E51D2D]" /> Interactive Pricing</Pill>
+              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">Customize Your Investment.</h2>
             </div>
           </Reveal>
 
-          <div className="mt-12 glass-panel p-6 sm:p-10 rounded-3xl border border-white/10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Options Selection */}
+          <div className="mt-12 glass-panel p-6 sm:p-10 rounded-3xl grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-7 space-y-3">
               <h3 className="text-lg font-bold text-white mb-4">Select Required Services:</h3>
               {pricingOptions.map((opt) => {
@@ -708,90 +466,62 @@
                   <div
                     key={opt.id}
                     onClick={() => toggleService(opt.id)}
-                    className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between border ${
-                      isChecked 
-                        ? "bg-[#E51D2D]/15 border-[#E51D2D] text-white" 
-                        : "glass-card border-white/5 text-white/60 hover:border-white/20"
-                    }`}
+                    className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between border ${isChecked ? "bg-[#E51D2D]/15 border-[#E51D2D] text-white" : "glass-card border-white/5 text-white/60"}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${
-                        isChecked ? "bg-[#E51D2D] border-[#E51D2D]" : "border-white/30"
-                      }`}>
-                        {isChecked && <Icon name="check" size={12} className="text-white" />}
-                      </div>
-                      <span className="font-semibold text-sm">{opt.label}</span>
-                    </div>
+                    <span className="font-semibold text-sm">{opt.label}</span>
                     <span className="font-bold text-sm text-white">${opt.price}</span>
                   </div>
                 );
               })}
             </div>
 
-            {/* Estimated Total Display */}
-            <div className="lg:col-span-5 glass-card p-8 rounded-2xl text-center border border-white/10 flex flex-col justify-center">
-              <span className="text-xs uppercase font-bold tracking-widest text-white/40">Estimated Investment</span>
-              <div className="mt-3 text-5xl font-extrabold text-white">
-                ${totalPrice.toLocaleString()}
-              </div>
-              <p className="mt-2 text-xs text-white/40">
-                Custom retainer discounts applied automatically for multi-service bundles.
-              </p>
+            {/* Lead Form */}
+            <div className="lg:col-span-5 glass-card p-6 rounded-2xl flex flex-col justify-center">
+              <span className="text-xs uppercase font-bold text-white/40 text-center">Total Estimated Investment</span>
+              <div className="mt-2 text-4xl font-extrabold text-center text-white">${totalPrice.toLocaleString()}</div>
               
-              <a href="#contact" className="mt-8 w-full py-3.5 rounded-full bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] text-white font-bold text-sm hover:opacity-90 transition-opacity">
-                Lock In Estimate
-              </a>
+              <form onSubmit={handleLeadSubmit} className="mt-6 space-y-3">
+                <input 
+                  type="text" 
+                  placeholder="Your Full Name" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#E51D2D]"
+                />
+                <input 
+                  type="email" 
+                  placeholder="Your Email Address" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#E51D2D]"
+                />
+
+                <button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="w-full py-3 rounded-full bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] text-white font-bold text-sm hover:opacity-90 disabled:opacity-50"
+                >
+                  {submitting ? "Sending Request..." : "Lock In Estimate"}
+                </button>
+
+                {message && (
+                  <div className={`text-xs text-center p-2 rounded-lg ${message.type === 'error' ? 'bg-red-500/20 text-red-300' : 'bg-emerald-500/20 text-emerald-300'}`}>
+                    {message.text}
+                  </div>
+                )}
+              </form>
             </div>
           </div>
         </section>
       );
     }
 
-    // CTA Banner
-    function ContactCTA() {
-      return (
-        <section id="contact" className="py-20 px-5 sm:px-8 max-w-7xl mx-auto">
-          <Reveal>
-            <div className="relative rounded-3xl p-10 sm:p-16 text-center overflow-hidden bg-gradient-to-br from-[#12141a] via-[#0d0e12] to-[#08090a] border border-white/10 shadow-2xl">
-              <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
-                <Logo size={48} showText={false} />
-                <h2 className="mt-6 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-                  Ready to build something legendary?
-                </h2>
-                <p className="mt-4 text-white/60 text-sm sm:text-base">
-                  Whether you need high-ticket video editing, full web development, or Upwork mentorship, Monetox is ready.
-                </p>
-
-                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-                  <a href="mailto:hello@monetox.com" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black hover:bg-white/90 transition-all">
-                    <Icon name="mail" size={16} />
-                    Direct Email Us
-                  </a>
-                  <a href="#top" className="inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-bold text-white hover:bg-white/10 transition-all">
-                    Back to Top
-                  </a>
-                </div>
-              </div>
-            </div>
-          </Reveal>
-        </section>
-      );
-    }
-
-    // Footer Component
+    // Footer
     function Footer() {
       return (
-        <footer className="border-t border-white/10 py-12 px-5 sm:px-8 max-w-7xl mx-auto text-xs text-white/40">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <Logo size={28} />
-            <div className="flex gap-6">
-              <a href="#services" className="hover:text-white transition-colors">Services</a>
-              <a href="#mentorship" className="hover:text-white transition-colors">Mentorship</a>
-              <a href="#work" className="hover:text-white transition-colors">Work</a>
-              <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-            </div>
-            <div>© {new Date().getFullYear()} Monetox Agency. All rights reserved.</div>
-          </div>
+        <footer className="border-t border-white/10 py-12 px-5 sm:px-8 max-w-7xl mx-auto text-xs text-white/40 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <Logo size={28} />
+          <div>© {new Date().getFullYear()} Monetox Agency. All rights reserved.</div>
         </footer>
       );
     }
@@ -804,18 +534,14 @@
           <main>
             <Hero />
             <Services />
-            <MentorshipSpotlight />
             <Portfolio />
-            <Process />
             <DynamicPricing />
-            <ContactCTA />
           </main>
           <Footer />
         </div>
       );
     }
 
-    // Render App
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
