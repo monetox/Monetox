@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monetox — Digital Creation at Light Speed</title>
+  <title>Monetox — Digital Execution & Agency Platform</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -19,28 +19,80 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #060709;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    /* Custom Glassmorphism */
+    .glass-panel {
+      background: rgba(18, 20, 26, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .glass-card:hover {
+      border-color: rgba(229, 29, 45, 0.4);
+      box-shadow: 0 10px 30px -10px rgba(229, 29, 45, 0.15);
+    }
+
+    /* Gradient Text */
+    .text-gradient-red {
+      background: linear-gradient(135deg, #ffffff 30%, #E51D2D 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .text-gradient-blue {
+      background: linear-gradient(135deg, #ffffff 30%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #060709;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1a1c23;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #E51D2D;
     }
   </style>
 </head>
-<body class="bg-[#08090a] text-white antialiased selection:bg-[#E51D2D]/30">
+<body class="antialiased selection:bg-[#E51D2D]/30 selection:text-white">
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // Helper component to render Lucide icons in standalone React
+    // Lucide Icon Wrapper Component
     function Icon({ name, size = 18, color, className = "", strokeWidth = 2 }) {
       const ref = useRef(null);
       useEffect(() => {
         if (ref.current) {
           ref.current.innerHTML = '';
-          const iconNode = lucide.createIcons({
-            icons: { [name]: lucide.icons[name] },
-            nameAttr: 'data-lucide'
-          });
+          if (window.lucide && window.lucide.icons[name]) {
+            const iconNode = lucide.createIcons({
+              icons: { [name]: lucide.icons[name] },
+              nameAttr: 'data-lucide'
+            });
+          }
         }
       }, [name]);
 
@@ -48,13 +100,14 @@
         <i 
           ref={ref} 
           data-lucide={name} 
-          style={{ width: size, height: size, color: color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: size, height: size, color: color, strokeWidth: strokeWidth, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           className={className}
         />
       );
     }
 
-    function useReveal() {
+    // Intersection Observer Reveal Component
+    function Reveal({ children, delay = 0, className = "" }) {
       const ref = useRef(null);
       const [visible, setVisible] = useState(false);
 
@@ -68,25 +121,20 @@
               io.disconnect();
             }
           },
-          { threshold: 0.15 }
+          { threshold: 0.1 }
         );
         io.observe(el);
         return () => io.disconnect();
       }, []);
 
-      return [ref, visible];
-    }
-
-    function Reveal({ children, delay = 0, className = "" }) {
-      const [ref, visible] = useReveal();
       return (
         <div
           ref={ref}
           className={className}
           style={{
             opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0px)" : "translateY(18px)",
-            transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+            transform: visible ? "translateY(0px)" : "translateY(24px)",
+            transition: `opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
           }}
         >
           {children}
@@ -94,49 +142,27 @@
       );
     }
 
-    function Logo({ size = 32, ring = true }) {
+    // Logo Component
+    function Logo({ size = 32 }) {
       return (
-        <div className="relative shrink-0" style={{ width: size, height: size }}>
-          {ring && (
-            <div
-              className="absolute -inset-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{
-                background: "conic-gradient(from 180deg, rgba(229,29,45,0.55), rgba(43,42,150,0.55), rgba(229,29,45,0.55))",
-                filter: "blur(6px)",
-              }}
-            />
-          )}
-          <img
-            src="1000069702.png"
-            alt="Monetox"
-            width={size}
-            height={size}
-            className="relative rounded-full object-cover"
-            style={{
-              width: size,
-              height: size,
-              boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 4px 16px -4px rgba(43,42,150,0.55)",
-            }}
-          />
+        <div className="relative flex items-center gap-2.5 shrink-0 group">
+          <div 
+            className="relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#E51D2D] to-[#2B2A96] p-0.5 shadow-lg shadow-[#E51D2D]/20 transition-transform duration-300 group-hover:scale-105"
+            style={{ width: size, height: size }}
+          >
+            <div className="w-full h-full bg-[#08090a] rounded-[10px] flex items-center justify-center overflow-hidden">
+              <span className="font-extrabold text-white text-xs tracking-tighter">MX</span>
+            </div>
+          </div>
+          <span className="text-[17px] font-bold tracking-tight text-white">Monetox</span>
         </div>
-      );
-    }
-
-    function KeyHint({ children }) {
-      return (
-        <kbd
-          className="inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-[11px] font-medium text-white/45"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" }}
-        >
-          {children}
-        </kbd>
       );
     }
 
     function Pill({ children, className = "" }) {
       return (
         <span
-          className={"inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium text-white/70 " + className}
+          className={"inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[12px] font-semibold tracking-wide uppercase text-white/80 " + className}
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", backdropFilter: "blur(12px)" }}
         >
           {children}
@@ -144,337 +170,590 @@
       );
     }
 
+    // Navigation Header
     function Header() {
       const [open, setOpen] = useState(false);
       const [scrolled, setScrolled] = useState(false);
 
       useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 8);
+        const onScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener("scroll", onScroll);
         return () => window.removeEventListener("scroll", onScroll);
       }, []);
 
       const links = [
         { label: "Services", href: "#services" },
-        { label: "Work", href: "#process" },
+        { label: "Mentorship", href: "#mentorship" },
+        { label: "Work", href: "#work" },
+        { label: "Process", href: "#process" },
         { label: "Pricing", href: "#pricing" },
-        { label: "About", href: "#about" },
       ];
 
       return (
-        <header className="fixed top-0 inset-x-0 z-50">
+        <header className="fixed top-0 inset-x-0 z-50 px-4 sm:px-8 pt-4">
           <div
-            className="transition-all duration-300"
-            style={{
-              background: scrolled ? "rgba(8,9,10,0.72)" : "rgba(8,9,10,0)",
-              backdropFilter: scrolled ? "blur(16px)" : "blur(0px)",
-              borderBottom: scrolled ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(255,255,255,0)",
-            }}
+            className={`mx-auto max-w-7xl rounded-2xl transition-all duration-300 ${
+              scrolled ? "glass-panel py-3 px-5 shadow-2xl" : "bg-transparent py-4 px-2"
+            }`}
           >
-            <div className="mx-auto max-w-7xl px-5 sm:px-8">
-              <div className="flex h-16 items-center justify-between">
-                <a href="#top" className="group flex items-center gap-2.5">
-                  <Logo size={30} />
-                  <span className="text-[15px] font-semibold tracking-tight text-white">Monetox</span>
-                </a>
+            <div className="flex items-center justify-between">
+              <a href="#top">
+                <Logo size={34} />
+              </a>
 
-                <nav className="hidden md:flex items-center gap-1">
-                  {links.map((l) => (
-                    <a key={l.label} href={l.href} className="rounded-full px-3.5 py-2 text-[13.5px] font-medium text-white/60 transition-colors duration-200 hover:text-white hover:bg-white/[0.05]">
-                      {l.label}
-                    </a>
-                  ))}
-                </nav>
-
-                <div className="hidden md:flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-white/35 text-[12px] pr-1">
-                    <span>Search</span>
-                    <KeyHint>⌘K</KeyHint>
-                  </div>
-                  <a href="#contact" className="group relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] font-semibold text-white transition-transform duration-200 hover:scale-[1.03]"
-                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)" }}>
-                    Book a Call
-                  </a>
-                </div>
-
-                <button className="md:hidden text-white/80 p-2 -mr-2" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
-                  <Icon name={open ? "x" : "menu"} size={20} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {open && (
-            <div className="md:hidden px-5 pb-5 pt-2" style={{ background: "rgba(8,9,10,0.97)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-              <nav className="flex flex-col gap-1">
+              <nav className="hidden md:flex items-center gap-1 glass-panel px-4 py-1.5 rounded-full border border-white/10">
                 {links.map((l) => (
-                  <a key={l.label} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-[14.5px] font-medium text-white/70 hover:text-white hover:bg-white/[0.05]">
+                  <a key={l.label} href={l.href} className="rounded-full px-4 py-1.5 text-[13.5px] font-medium text-white/70 transition-all duration-200 hover:text-white hover:bg-white/10">
                     {l.label}
                   </a>
                 ))}
-                <a href="#contact" onClick={() => setOpen(false)} className="mt-2 rounded-full px-4 py-2.5 text-center text-[14px] font-semibold text-white" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)" }}>
-                  Book a Call
-                </a>
               </nav>
+
+              <div className="hidden md:flex items-center gap-3">
+                <a href="#pricing" className="text-[13.5px] font-medium text-white/70 hover:text-white px-3 py-1.5 transition-colors">
+                  Calculator
+                </a>
+                <a href="#contact" className="group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] hover:opacity-95 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#E51D2D]/25">
+                  Book A Strategy Call
+                  <Icon name="arrow-right" size={15} />
+                </a>
+              </div>
+
+              <button className="md:hidden text-white/80 p-2" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
+                <Icon name={open ? "x" : "menu"} size={22} />
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Nav Dropdown */}
+          {open && (
+            <div className="md:hidden mt-2 rounded-2xl p-5 glass-panel border border-white/10 flex flex-col gap-3">
+              {links.map((l) => (
+                <a key={l.label} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 text-[15px] font-medium text-white/80 hover:bg-white/5">
+                  {l.label}
+                </a>
+              ))}
+              <a href="#contact" onClick={() => setOpen(false)} className="mt-2 text-center rounded-xl py-3 text-[14px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96]">
+                Book Strategy Call
+              </a>
             </div>
           )}
         </header>
       );
     }
 
-    function MiniStatusIcon() {
-      return (
-        <div className="relative flex h-7 w-7 items-center justify-center rounded-full shrink-0" style={{ background: "radial-gradient(circle at 30% 30%, #3a39b8, #201f7a)", boxShadow: "0 0 0 1px rgba(255,255,255,0.08)" }}>
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
-            <path d="M4 4 L14 12 L4 20 Z M12.5 10 L20 4 L20 20 L9 20 Z" fill="#E51D2D" stroke="#E51D2D" strokeWidth="0.5" strokeLinejoin="round" />
-          </svg>
-        </div>
-      );
-    }
-
-    function DashboardPreview() {
-      const rows = [
-        { name: "Aurora — brand site", stage: "Vibe Coding", pct: 82, active: true },
-        { name: "Nova launch trailer", stage: "Video Edit", pct: 46, active: false },
-        { name: "Kindred thumbnails ×12", stage: "Design QA", pct: 95, active: false },
-      ];
-
-      return (
-        <div className="relative mx-auto w-full max-w-4xl rounded-2xl p-1.5" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02))" }}>
-          <div className="rounded-[14px] overflow-hidden" style={{ background: "rgba(13,14,17,0.9)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div className="flex gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-              </div>
-              <div className="mx-auto flex items-center gap-2 text-[11.5px] text-white/35">
-                <MiniStatusIcon />
-                <span>Monetox Portal — Active Sprints</span>
-              </div>
-            </div>
-
-            <div className="p-4 sm:p-6">
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                {[
-                  { label: "Live projects", value: "07" },
-                  { label: "Avg. delivery", value: "6.4d" },
-                  { label: "Client CSAT", value: "98%" },
-                ].map((s) => (
-                  <div key={s.label} className="rounded-xl px-3.5 py-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div className="text-[18px] sm:text-[20px] font-semibold text-white tracking-tight">{s.value}</div>
-                    <div className="text-[11px] text-white/40 mt-0.5">{s.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {rows.map((r) => (
-                  <div key={r.name} className="flex items-center gap-3 rounded-xl px-3.5 py-3 transition-colors duration-200 hover:bg-white/[0.03]"
-                    style={{ background: r.active ? "rgba(229,29,45,0.06)" : "rgba(255,255,255,0.015)", border: r.active ? "1px solid rgba(229,29,45,0.22)" : "1px solid rgba(255,255,255,0.05)" }}>
-                    <MiniStatusIcon />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-medium text-white/85 truncate">{r.name}</div>
-                      <div className="text-[11px] text-white/40">{r.stage}</div>
-                    </div>
-                    <div className="hidden sm:block w-24 h-1.5 rounded-full overflow-hidden bg-white/[0.06]">
-                      <div className="h-full rounded-full" style={{ width: `${r.pct}%`, background: "linear-gradient(90deg, #2B2A96, #E51D2D)" }} />
-                    </div>
-                    <span className="text-[11.5px] text-white/45 w-9 text-right shrink-0">{r.pct}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
+    // Hero Section
     function Hero() {
       return (
-        <section id="top" className="relative overflow-hidden pt-36 pb-24 sm:pt-44 sm:pb-32 px-5 sm:px-8">
-          <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[560px] w-[860px] rounded-full opacity-40" style={{ background: "radial-gradient(ellipse at center, rgba(43,42,150,0.55), transparent 65%)", filter: "blur(60px)" }} />
-          <div className="pointer-events-none absolute top-10 right-[8%] h-[280px] w-[280px] rounded-full opacity-30" style={{ background: "radial-gradient(circle, rgba(229,29,45,0.45), transparent 70%)", filter: "blur(70px)" }} />
+        <section id="top" className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-5 sm:px-8 overflow-hidden">
+          {/* Ambient Lighting Gradients */}
+          <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[800px] rounded-full opacity-30 bg-gradient-to-tr from-[#2B2A96] to-[#E51D2D] blur-[120px]" />
+          <div className="pointer-events-none absolute bottom-10 right-10 h-[300px] w-[300px] rounded-full opacity-20 bg-[#E51D2D] blur-[100px]" />
 
           <div className="relative mx-auto max-w-5xl text-center">
             <Reveal>
-              <Pill className="mx-auto">
-                <Icon name="sparkles" size={13} className="text-[#ff5b68]" />
-                Monetox 2.0 — Digital Creation at Light Speed
+              <Pill className="mx-auto mb-6">
+                <Icon name="sparkles" size={14} className="text-[#E51D2D]" />
+                Full-Stack Digital Agency & Mentorship
               </Pill>
             </Reveal>
 
-            <Reveal delay={80}>
-              <h1 className="mt-7 text-[2.6rem] leading-[1.08] sm:text-6xl sm:leading-[1.06] lg:text-[4.5rem] lg:leading-[1.03] font-semibold tracking-[-0.03em] text-white text-balance">
-                We code the vibe.<br />
-                <span className="relative inline-block">
-                  You scale the impact.
-                  <span className="absolute left-0 -bottom-1 h-[3px] w-full rounded-full" style={{ background: "linear-gradient(90deg, transparent, #E51D2D, transparent)", opacity: 0.7 }} />
+            <Reveal delay={100}>
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] text-balance">
+                Digital Creation at <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E51D2D] via-purple-400 to-[#6366f1]">
+                  Light Speed.
                 </span>
               </h1>
             </Reveal>
 
-            <Reveal delay={160}>
-              <p className="mx-auto mt-6 max-w-2xl text-[16px] sm:text-[18px] leading-relaxed text-white/50">
-                From cinematic edits and viral thumbnails to vibe coding and high-performance websites. Everything your brand needs to dominate digitally.
+            <Reveal delay={200}>
+              <p className="mx-auto mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-white/60">
+                We engineer high-converting websites, craft viral video edits, write vibe code apps, and coach freelancers to $10k+/mo on Upwork.
               </p>
             </Reveal>
 
-            <Reveal delay={240}>
-              <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a href="#contact" className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[14.5px] font-semibold text-[#0b0c0e] transition-transform duration-200 hover:scale-[1.03]">
-                  Start a Project
+            <Reveal delay={300}>
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="#contact" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-all duration-200 hover:bg-white/90 hover:scale-105 shadow-xl shadow-white/10">
+                  Scale Your Brand
                   <Icon name="arrow-right" size={16} />
                 </a>
-                <a href="#services" className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14.5px] font-medium text-white/75 transition-colors duration-200 hover:text-white hover:bg-white/[0.05]" style={{ border: "1px solid rgba(255,255,255,0.1)" }}>
-                  Explore Services
+                <a href="#mentorship" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-white/10 hover:border-white/20">
+                  <Icon name="graduation-cap" size={16} className="text-[#E51D2D]" />
+                  Upwork Mentorship
                 </a>
               </div>
             </Reveal>
 
-            <Reveal delay={340} className="mt-16 sm:mt-20">
-              <DashboardPreview />
-            </Reveal>
-          </div>
-        </section>
-      );
-    }
-
-    function BentoCard({ iconName, title, desc, className = "", accent = "blue", children }) {
-      const [hover, setHover] = useState(false);
-      const glow = accent === "red" ? "rgba(229,29,45,0.14)" : "rgba(43,42,150,0.22)";
-      const iconBg = accent === "red" ? "linear-gradient(135deg, rgba(229,29,45,0.18), rgba(229,29,45,0.03))" : "linear-gradient(135deg, rgba(43,42,150,0.35), rgba(43,42,150,0.05))";
-      const iconColor = accent === "red" ? "#ff6b76" : "#8b8ae0";
-
-      return (
-        <div
-          onMouseEnter={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
-          className={"relative overflow-hidden rounded-2xl p-6 sm:p-7 flex flex-col transition-all duration-300 " + className}
-          style={{ background: "#121316", border: hover ? "1px solid rgba(255,255,255,0.16)" : "1px solid rgba(255,255,255,0.08)", transform: hover ? "translateY(-2px)" : "translateY(0)" }}
-        >
-          <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(circle, ${glow}, transparent 70%)`, opacity: hover ? 1 : 0.5, filter: "blur(10px)" }} />
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl mb-5" style={{ background: iconBg, border: "1px solid rgba(255,255,255,0.06)" }}>
-            <Icon name={iconName} size={18} color={iconColor} />
-          </div>
-          <h3 className="relative text-[16.5px] font-semibold text-white tracking-tight">{title}</h3>
-          <p className="relative mt-2 text-[13.5px] leading-relaxed text-white/45">{desc}</p>
-          {children}
-          <div className="mt-auto pt-4">
-            <Icon name="arrow-up-right" size={16} className="relative text-white/25 transition-all duration-300" style={{ opacity: hover ? 1 : 0, transform: hover ? "translate(0,0)" : "translate(-4px,4px)" }} />
-          </div>
-        </div>
-      );
-    }
-
-    function Services() {
-      return (
-        <section id="services" className="relative px-5 sm:px-8 py-24 sm:py-32">
-          <div className="mx-auto max-w-6xl">
-            <Reveal>
-              <div className="max-w-xl">
-                <Pill>
-                  <Icon name="circle" size={7} className="fill-[#E51D2D] text-[#E51D2D]" />
-                  What we do
-                </Pill>
-                <h2 className="mt-5 text-3xl sm:text-[2.6rem] font-semibold tracking-[-0.025em] text-white leading-[1.1]">
-                  One execution partner.<br /> Every asset your brand ships.
-                </h2>
-                <p className="mt-4 text-[15px] text-white/45 leading-relaxed">
-                  No handoffs between five different freelancers. One team, one Slack thread, output that ships.
-                </p>
-              </div>
-            </Reveal>
-
-            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Reveal delay={0} className="lg:col-span-2">
-                <BentoCard iconName="code-2" title="Vibe Coding & Rapid Prototyping" desc="From a Figma sketch or a voice memo to a working, deployable product in days — not sprints. We build fast, functional MVPs, internal tools, and web apps using modern AI-assisted workflows without sacrificing code quality." accent="blue" className="min-h-[240px]">
-                  <div className="relative mt-5 flex flex-wrap gap-2">
-                    {["Next.js", "React", "Tailwind", "Supabase", "Claude Code"].map((t) => (
-                      <span key={t} className="rounded-md px-2.5 py-1 text-[11px] font-medium text-white/50" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>{t}</span>
+            {/* Hero Image Showcase Grid */}
+            <Reveal delay={400} className="mt-16 sm:mt-20">
+              <div className="relative mx-auto max-w-5xl rounded-2xl p-2 glass-panel border border-white/10 shadow-2xl">
+                <div className="relative rounded-xl overflow-hidden aspect-video bg-[#0b0d12]">
+                  <img 
+                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80" 
+                    alt="Monetox Team Collaborating" 
+                    className="w-full h-full object-cover opacity-80"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-transparent to-transparent" />
+                  
+                  {/* Overlay Floating Stats */}
+                  <div className="absolute bottom-6 left-6 right-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[
+                      { label: "Projects Completed", value: "140+" },
+                      { label: "Upwork Earnings Generated", value: "$350k+" },
+                      { label: "Avg Turnaround", value: "48 Hours" },
+                      { label: "Client CSAT", value: "99.2%" }
+                    ].map((s, i) => (
+                      <div key={i} className="glass-panel rounded-xl p-3 text-left">
+                        <div className="text-lg sm:text-xl font-extrabold text-white">{s.value}</div>
+                        <div className="text-[11px] text-white/50 font-medium">{s.label}</div>
+                      </div>
                     ))}
                   </div>
-                </BentoCard>
-              </Reveal>
-
-              <Reveal delay={80}>
-                <BentoCard iconName="layout-template" title="High-End Web Design" desc="Conversion-focused, pixel-precise websites with the polish of a product studio — built to load fast and hold attention." accent="red" className="min-h-[240px]" />
-              </Reveal>
-
-              <Reveal delay={120}>
-                <BentoCard iconName="clapperboard" title="Cinematic Video Editing" desc="Story-driven cuts, pacing, and color grading for launch films, ads, and long-form content that actually gets watched." accent="blue" className="min-h-[220px]" />
-              </Reveal>
-
-              <Reveal delay={160}>
-                <BentoCard iconName="image-up" title="High-CTR Thumbnail Design" desc="Data-informed thumbnail systems built to win the scroll and lift click-through without looking like clickbait." accent="red" className="min-h-[220px]" />
-              </Reveal>
-
-              <Reveal delay={200} className="lg:col-span-1">
-                <BentoCard iconName="rocket" title="Full Brand Scaling" desc="Media strategy, graphic systems, and content cadence that turn a one-off asset into a compounding growth engine." accent="blue" className="min-h-[220px]" />
-              </Reveal>
-            </div>
+                </div>
+              </div>
+            </Reveal>
           </div>
         </section>
       );
     }
 
-    function Process() {
-      const steps = [
-        { n: "01", title: "Vision", desc: "A working session to pin down the goal, the audience, and what \"done\" actually looks like — no generic briefs." },
-        { n: "02", title: "Vibe Code & Design", desc: "Design and build run in parallel. You see working prototypes and drafts inside 72 hours, not a moodboard." },
-        { n: "03", title: "Scale", desc: "Ship, measure, and iterate. We stay on to tune what's converting and extend what's working." },
+    // Comprehensive Services Section with Images
+    function Services() {
+      const services = [
+        {
+          id: "video",
+          title: "Cinematic Video Editing",
+          icon: "clapperboard",
+          image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
+          desc: "Retain viewer attention with high-pacing, custom color grading, sound design, and viral retention editing for YouTube, Reels, and Ads.",
+          tags: ["Retention Editing", "Color Grading", "Sound FX", "Shorts & Reels"]
+        },
+        {
+          id: "coding",
+          title: "Vibe Coding & App Development",
+          icon: "code",
+          image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+          desc: "Rapid prototyping and full-stack web applications built at light speed using modern AI workflows, React, Next.js, and Supabase.",
+          tags: ["AI-Assisted Dev", "Full-Stack MVPs", "React / Next.js", "API Integrations"]
+        },
+        {
+          id: "thumbnails",
+          title: "High-CTR Thumbnail Design",
+          icon: "image",
+          image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
+          desc: "Psychologically optimized thumbnail visual artwork designed to dominate YouTube feeds and maximize click-through rates.",
+          tags: ["Visual Hierarchy", "CTR Optimization", "Photoshop Art", "3D Rendering"]
+        },
+        {
+          id: "web",
+          title: "Web Design & Development",
+          icon: "layout",
+          image: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80",
+          desc: "Pixel-perfect, ultra-fast websites engineered to build brand authority and convert visitors into paying high-ticket clients.",
+          tags: ["UI/UX Design", "Tailwind CSS", "Conversion Copy", "Figma Design"]
+        },
+        {
+          id: "upwork",
+          title: "Upwork Mentorship Program",
+          icon: "award",
+          image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
+          desc: "1-on-1 coaching that guides freelancers to Top Rated status, high-converting proposal templates, and $10k+/mo contracts.",
+          tags: ["Profile Optimization", "Proposal Mastery", "Client Acquisition", "Pricing Strategy"]
+        },
+        {
+          id: "brand",
+          title: "Full Brand Scaling & Strategy",
+          icon: "trending-up",
+          image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
+          desc: "End-to-end digital content strategy, omni-channel distribution systems, and visual assets designed for aggressive digital growth.",
+          tags: ["Content Engine", "Omni-Channel", "Audience Growth", "Monetization"]
+        }
       ];
 
       return (
-        <section id="process" className="relative px-5 sm:px-8 py-24 sm:py-32">
-          <div className="relative mx-auto max-w-6xl">
-            <Reveal>
-              <div className="text-center max-w-xl mx-auto">
-                <Pill className="mx-auto">
-                  <Icon name="command" size={13} className="text-white/50" />
-                  How it runs
-                </Pill>
-                <h2 className="mt-5 text-3xl sm:text-[2.6rem] font-semibold tracking-[-0.025em] text-white">Three stages. Zero drift.</h2>
-              </div>
-            </Reveal>
+        <section id="services" className="relative py-28 px-5 sm:px-8 max-w-7xl mx-auto">
+          <Reveal>
+            <div className="text-center max-w-2xl mx-auto">
+              <Pill>
+                <Icon name="layers" size={13} className="text-[#E51D2D]" />
+                Our Core Capabilities
+              </Pill>
+              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
+                Everything your digital presence demands.
+              </h2>
+              <p className="mt-4 text-white/50 text-base">
+                No fragmented teams or unreliable freelancers. Monetox is your centralized digital execution engine.
+              </p>
+            </div>
+          </Reveal>
 
-            <div className="relative mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
-              {steps.map((s, i) => (
-                <Reveal key={s.n} delay={i * 120}>
-                  <div className="relative flex flex-col items-start px-1">
-                    <div className="relative flex h-12 w-12 items-center justify-center rounded-full text-[13px] font-semibold text-white/80 mb-6" style={{ background: "#121316", border: "1px solid rgba(255,255,255,0.14)" }}>
-                      {s.n}
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((s, idx) => (
+              <Reveal key={s.id} delay={idx * 80}>
+                <div className="glass-card rounded-2xl overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 h-full flex flex-col">
+                  {/* Image Container */}
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={s.image} 
+                      alt={s.title} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e12] via-transparent to-transparent" />
+                    <div className="absolute top-3 right-3 glass-panel p-2 rounded-xl text-white">
+                      <Icon name={s.icon} size={18} className="text-[#E51D2D]" />
                     </div>
-                    <h3 className="text-[17px] font-semibold text-white tracking-tight">{s.title}</h3>
-                    <p className="mt-2.5 text-[14px] leading-relaxed text-white/45">{s.desc}</p>
                   </div>
-                </Reveal>
-              ))}
+
+                  {/* Body Content */}
+                  <div className="p-6 flex flex-col flex-1">
+                    <h3 className="text-xl font-bold text-white group-hover:text-[#E51D2D] transition-colors">
+                      {s.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-white/50 leading-relaxed flex-1">
+                      {s.desc}
+                    </p>
+
+                    {/* Tags */}
+                    <div className="mt-6 flex flex-wrap gap-1.5">
+                      {s.tags.map((t, i) => (
+                        <span key={i} className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white/60">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    // Specialized Upwork Mentorship Feature Spotlight
+    function MentorshipSpotlight() {
+      return (
+        <section id="mentorship" className="relative py-24 px-5 sm:px-8 max-w-7xl mx-auto">
+          <div className="glass-panel rounded-3xl p-8 sm:p-12 border border-[#E51D2D]/30 relative overflow-hidden">
+            {/* Background Accent */}
+            <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-[#E51D2D]/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+              <Reveal>
+                <div>
+                  <Pill className="border-[#E51D2D]/40 text-[#E51D2D]">
+                    <Icon name="check-circle" size={13} />
+                    Exclusive Coaching Program
+                  </Pill>
+                  <h2 className="mt-5 text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                    Master Upwork & Build Your 6-Figure Agency.
+                  </h2>
+                  <p className="mt-4 text-white/60 text-base leading-relaxed">
+                    Stop competing on price. Learn our exact proposal frameworks, profile optimization blueprints, and high-ticket closing scripts that generated over $350k+.
+                  </p>
+
+                  <div className="mt-8 space-y-4">
+                    {[
+                      { title: "Profile Revamp & Ranking Secrets", desc: "Position yourself as an elite specialist to get invited to top jobs." },
+                      { title: "High-CTR Proposal Templates", desc: "Win clients before competitors even reply with custom video pitches." },
+                      { title: "High-Ticket Client Negotiation", desc: "How to charge $2k–$10k per project on Upwork effortlessly." }
+                    ].map((item, i) => (
+                      <div key={i} className="flex gap-3 items-start">
+                        <div className="p-1 rounded-full bg-[#E51D2D]/20 text-[#E51D2D] mt-0.5">
+                          <Icon name="check" size={14} />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-white">{item.title}</h4>
+                          <p className="text-xs text-white/50">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-8">
+                    <a href="#contact" className="inline-flex items-center gap-2 rounded-full px-6 py-3 bg-[#E51D2D] hover:bg-[#E51D2D]/90 text-white font-bold text-sm transition-all shadow-lg shadow-[#E51D2D]/30">
+                      Apply for Mentorship
+                      <Icon name="arrow-right" size={16} />
+                    </a>
+                  </div>
+                </div>
+              </Reveal>
+
+              <Reveal delay={200}>
+                <div className="relative rounded-2xl overflow-hidden glass-card p-4 border border-white/10">
+                  <img 
+                    src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1000&q=80" 
+                    alt="Upwork Mentorship Session" 
+                    className="rounded-xl w-full object-cover h-80"
+                  />
+                  <div className="mt-4 p-4 rounded-xl bg-[#08090a] border border-white/10 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs text-white/40 font-medium">Mentorship Result</div>
+                      <div className="text-lg font-bold text-emerald-400">Top Rated Plus Freelancer</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-white/40 font-medium">Average Monthly Growth</div>
+                      <div className="text-lg font-bold text-white">+340% Revenue</div>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
             </div>
           </div>
         </section>
       );
     }
 
-    function CtaBanner() {
+    // Filterable Visual Portfolio Showcase Section
+    function Portfolio() {
+      const [filter, setFilter] = useState("all");
+
+      const projects = [
+        { title: "SaaS Vibe Code MVP", cat: "coding", img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80", tag: "Vibe Coding" },
+        { title: "Gaming Channel Rebrand & Cuts", cat: "video", img: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80", tag: "Video Edit" },
+        { title: "FinTech Platform Design", cat: "web", img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80", tag: "Web Design" },
+        { title: "High CTR Viral Thumbnails", cat: "thumbnails", img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80", tag: "Thumbnails" },
+        { title: "Upwork $0 to $10k Roadmap", cat: "mentorship", img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80", tag: "Mentorship" },
+        { title: "AI Dashboard Prototyping", cat: "coding", img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80", tag: "App Dev" }
+      ];
+
+      const filtered = filter === "all" ? projects : projects.filter(p => p.cat === filter);
+
       return (
-        <section id="contact" className="relative px-5 sm:px-8 py-6 sm:py-10">
+        <section id="work" className="py-24 px-5 sm:px-8 max-w-7xl mx-auto">
           <Reveal>
-            <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[28px] px-6 py-16 sm:px-16 sm:py-24 text-center" style={{ background: "radial-gradient(120% 140% at 50% 0%, rgba(43,42,150,0.35), rgba(18,19,22,0.4) 55%), #121316", border: "1px solid rgba(255,255,255,0.09)" }}>
-              <div className="relative flex justify-center mb-6">
-                <Logo size={44} />
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div>
+                <Pill>
+                  <Icon name="briefcase" size={13} className="text-[#E51D2D]" />
+                  Selected Work
+                </Pill>
+                <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
+                  Crafted for high impact.
+                </h2>
               </div>
-              <h2 className="relative text-3xl sm:text-5xl font-semibold tracking-[-0.03em] text-white leading-[1.08]">
-                Ready to elevate your<br className="hidden sm:block" /> digital footprint?
+
+              {/* Filter Tabs */}
+              <div className="flex flex-wrap gap-2 glass-panel p-1.5 rounded-xl border border-white/10">
+                {[
+                  { label: "All Work", id: "all" },
+                  { label: "Video", id: "video" },
+                  { label: "Vibe Code", id: "coding" },
+                  { label: "Web", id: "web" },
+                  { label: "Thumbnails", id: "thumbnails" },
+                  { label: "Mentorship", id: "mentorship" },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setFilter(t.id)}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      filter === t.id ? "bg-[#E51D2D] text-white shadow-md" : "text-white/60 hover:text-white"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Project Cards Grid */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((item, idx) => (
+              <Reveal key={idx} delay={idx * 60}>
+                <div className="glass-card rounded-2xl overflow-hidden group relative">
+                  <div className="h-64 overflow-hidden relative">
+                    <img 
+                      src={item.img} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-black/20 to-transparent" />
+                  </div>
+                  <div className="p-5 absolute bottom-0 inset-x-0">
+                    <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#E51D2D] text-white">
+                      {item.tag}
+                    </span>
+                    <h3 className="mt-2 text-lg font-bold text-white group-hover:text-[#E51D2D] transition-colors">
+                      {item.title}
+                    </h3>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    // Process Workflow Section
+    function Process() {
+      const steps = [
+        {
+          num: "01",
+          title: "Discovery & Blueprint",
+          desc: "We analyze your brand goals, target audience, and scope required deliverables in a 30-min strategy call."
+        },
+        {
+          num: "02",
+          title: "Agile Execution & Vibe Drafts",
+          desc: "Our team deploys video edits, website prototypes, or Upwork mentorship frameworks within 48 to 72 hours."
+        },
+        {
+          num: "03",
+          title: "Polishing & Final Scale",
+          desc: "We refine based on your feedback, optimize CTR and conversions, and deploy production-ready assets."
+        }
+      ];
+
+      return (
+        <section id="process" className="py-24 px-5 sm:px-8 max-w-7xl mx-auto border-t border-white/5">
+          <Reveal>
+            <div className="text-center max-w-2xl mx-auto">
+              <Pill>
+                <Icon name="git-branch" size={13} className="text-[#E51D2D]" />
+                How We Operate
+              </Pill>
+              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
+                Streamlined. Zero Friction.
               </h2>
-              <p className="relative mt-5 text-[15.5px] text-white/50 max-w-md mx-auto">
-                Tell us what you're building. We'll scope it, price it, and have a plan back in your inbox within a day.
+            </div>
+          </Reveal>
+
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+            {steps.map((s, idx) => (
+              <Reveal key={s.num} delay={idx * 100}>
+                <div className="glass-panel p-8 rounded-2xl relative border border-white/10 flex flex-col h-full">
+                  <div className="text-4xl font-extrabold text-[#E51D2D] opacity-80 mb-4">{s.num}</div>
+                  <h3 className="text-xl font-bold text-white mb-2">{s.title}</h3>
+                  <p className="text-sm text-white/50 leading-relaxed">{s.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    // Dynamic Pricing Calculator Section
+    function DynamicPricing() {
+      const [selectedServices, setSelectedServices] = useState(["video"]);
+
+      const pricingOptions = [
+        { id: "video", label: "Video Editing Package", price: 1200 },
+        { id: "coding", label: "Vibe Code / MVP App", price: 2500 },
+        { id: "web", label: "Custom Agency Web Design", price: 1800 },
+        { id: "thumbnails", label: "Monthly Thumbnail Pack (10x)", price: 600 },
+        { id: "mentorship", label: "1-on-1 Upwork Coaching", price: 950 }
+      ];
+
+      const toggleService = (id) => {
+        if (selectedServices.includes(id)) {
+          if (selectedServices.length > 1) {
+            setSelectedServices(selectedServices.filter(s => s !== id));
+          }
+        } else {
+          setSelectedServices([...selectedServices, id]);
+        }
+      };
+
+      const totalPrice = selectedServices.reduce((acc, currId) => {
+        const item = pricingOptions.find(o => o.id === currId);
+        return acc + (item ? item.price : 0);
+      }, 0);
+
+      return (
+        <section id="pricing" className="py-24 px-5 sm:px-8 max-w-7xl mx-auto">
+          <Reveal>
+            <div className="text-center max-w-2xl mx-auto">
+              <Pill>
+                <Icon name="calculator" size={13} className="text-[#E51D2D]" />
+                Interactive Pricing Engine
+              </Pill>
+              <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold text-white">
+                Customize Your Investment.
+              </h2>
+              <p className="mt-3 text-white/50 text-sm">
+                Select the core services you require to calculate an estimated project bundle cost.
               </p>
-              <div className="relative mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a href="#" className="group inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-[14.5px] font-semibold text-[#0b0c0e] transition-transform duration-200 hover:scale-[1.03]">
-                  Get Started in 48 Hours
-                  <Icon name="arrow-right" size={16} />
-                </a>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 glass-panel p-6 sm:p-10 rounded-3xl border border-white/10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Options Selection */}
+            <div className="lg:col-span-7 space-y-3">
+              <h3 className="text-lg font-bold text-white mb-4">Select Required Services:</h3>
+              {pricingOptions.map((opt) => {
+                const isChecked = selectedServices.includes(opt.id);
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => toggleService(opt.id)}
+                    className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between border ${
+                      isChecked 
+                        ? "bg-[#E51D2D]/15 border-[#E51D2D] text-white" 
+                        : "glass-card border-white/5 text-white/60 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${
+                        isChecked ? "bg-[#E51D2D] border-[#E51D2D]" : "border-white/30"
+                      }`}>
+                        {isChecked && <Icon name="check" size={12} className="text-white" />}
+                      </div>
+                      <span className="font-semibold text-sm">{opt.label}</span>
+                    </div>
+                    <span className="font-bold text-sm text-white">${opt.price}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Estimated Total Display */}
+            <div className="lg:col-span-5 glass-card p-8 rounded-2xl text-center border border-white/10 flex flex-col justify-center">
+              <span className="text-xs uppercase font-bold tracking-widest text-white/40">Estimated Investment</span>
+              <div className="mt-3 text-5xl font-extrabold text-white">
+                ${totalPrice.toLocaleString()}
+              </div>
+              <p className="mt-2 text-xs text-white/40">
+                Custom retainer discounts applied automatically for multi-service bundles.
+              </p>
+              
+              <a href="#contact" className="mt-8 w-full py-3.5 rounded-full bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] text-white font-bold text-sm hover:opacity-90 transition-opacity">
+                Lock In Estimate
+              </a>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // CTA Banner
+    function ContactCTA() {
+      return (
+        <section id="contact" className="py-20 px-5 sm:px-8 max-w-7xl mx-auto">
+          <Reveal>
+            <div className="relative rounded-3xl p-10 sm:p-16 text-center overflow-hidden bg-gradient-to-br from-[#12141a] via-[#0d0e12] to-[#08090a] border border-white/10 shadow-2xl">
+              <div className="relative z-10 max-w-2xl mx-auto">
+                <Logo size={42} />
+                <h2 className="mt-6 text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+                  Ready to build something legendary?
+                </h2>
+                <p className="mt-4 text-white/60 text-sm sm:text-base">
+                  Whether you need high-ticket video editing, full web development, or Upwork mentorship, Monetox is ready.
+                </p>
+
+                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                  <a href="mailto:hello@monetox.com" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black hover:bg-white/90 transition-all">
+                    <Icon name="mail" size={16} />
+                    Direct Email Us
+                  </a>
+                  <a href="#top" className="inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-bold text-white hover:bg-white/10 transition-all">
+                    Back to Top
+                  </a>
+                </div>
               </div>
             </div>
           </Reveal>
@@ -482,66 +761,44 @@
       );
     }
 
+    // Footer Component
     function Footer() {
       return (
-        <footer id="about" className="relative px-5 sm:px-8 pt-20 pb-10">
-          <div className="mx-auto max-w-6xl" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-            <div className="pt-14 grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_1fr] gap-10">
-              <div>
-                <a href="#top" className="group inline-flex items-center gap-2.5">
-                  <Logo size={28} />
-                  <span className="text-[15px] font-semibold tracking-tight text-white">Monetox</span>
-                </a>
-                <p className="mt-4 max-w-xs text-[13.5px] leading-relaxed text-white/40">
-                  The all-in-one digital execution partner for modern creators, startups, and brands.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-[12.5px] font-semibold text-white/70 uppercase tracking-wide">Company</h4>
-                <ul className="mt-4 flex flex-col gap-3 text-[13.5px] text-white/45">
-                  <li><a href="#services" className="hover:text-white transition-colors">Services</a></li>
-                  <li><a href="#process" className="hover:text-white transition-colors">Work</a></li>
-                  <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                  <li><a href="#contact" className="hover:text-white transition-colors">Contact</a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-[12.5px] font-semibold text-white/70 uppercase tracking-wide">Connect</h4>
-                <div className="mt-4 flex items-center gap-2">
-                  {["twitter", "github", "linkedin"].map((icon) => (
-                    <a key={icon} href="#" className="flex h-9 w-9 items-center justify-center rounded-full text-white/45 hover:text-white hover:bg-white/[0.06]" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
-                      <Icon name={icon} size={15} />
-                    </a>
-                  ))}
-                </div>
-              </div>
+        <footer className="border-t border-white/10 py-12 px-5 sm:px-8 max-w-7xl mx-auto text-xs text-white/40">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <Logo size={28} />
+            <div className="flex gap-6">
+              <a href="#services" className="hover:text-white transition-colors">Services</a>
+              <a href="#mentorship" className="hover:text-white transition-colors">Mentorship</a>
+              <a href="#work" className="hover:text-white transition-colors">Work</a>
+              <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             </div>
-
-            <div className="mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 pb-2 text-[12.5px] text-white/30">
-              <span>© {new Date().getFullYear()} Monetox. All rights reserved.</span>
-            </div>
+            <div>© {new Date().getFullYear()} Monetox Agency. All rights reserved.</div>
           </div>
         </footer>
       );
     }
 
+    // App Component
     function App() {
       return (
-        <div className="min-h-screen w-full">
+        <div className="min-h-screen bg-[#060709] text-white">
           <Header />
           <main>
             <Hero />
             <Services />
+            <MentorshipSpotlight />
+            <Portfolio />
             <Process />
-            <CtaBanner />
+            <DynamicPricing />
+            <ContactCTA />
           </main>
           <Footer />
         </div>
       );
     }
 
+    // Render App
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
