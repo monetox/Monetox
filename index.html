@@ -30,7 +30,7 @@
 
     /* Custom Glassmorphism */
     .glass-panel {
-      background: rgba(18, 20, 26, 0.65);
+      background: rgba(18, 20, 26, 0.75);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -158,20 +158,29 @@
       );
     }
 
-    // Interactive Modal Popup with Live Email Routing
+    // Interactive Modal Popup with Live Email Routing & Dismissable Tag
     function BookingModal() {
       const { isOpen, closeModal, initialService, initialBudget } = useContext(ModalContext);
       const [submitted, setSubmitted] = useState(false);
       const [loading, setLoading] = useState(false);
+      const [activeTag, setActiveTag] = useState(null);
       const [formData, setFormData] = useState({ name: '', email: '', service: 'General Strategy', details: '' });
 
       useEffect(() => {
         if (initialService) {
           setFormData(prev => ({ ...prev, service: initialService }));
+          setActiveTag(initialService);
+        } else {
+          setActiveTag(null);
         }
-      }, [initialService]);
+      }, [initialService, isOpen]);
 
       if (!isOpen) return null;
+
+      const clearTag = () => {
+        setActiveTag(null);
+        setFormData(prev => ({ ...prev, service: 'General Strategy' }));
+      };
 
       const handleSubmit = async (e) => {
         e.preventDefault();
@@ -214,30 +223,52 @@
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div className="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 border border-white/10 relative shadow-2xl">
+            {/* Modal Close Button */}
             <button 
               onClick={closeModal} 
-              className="absolute top-5 right-5 p-2 text-white/50 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+              className="absolute top-5 right-5 p-2 text-white/50 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
             >
               <Icon name="x" size={18} />
             </button>
 
             {submitted ? (
               <div className="text-center py-12 space-y-4">
-                <div className="w-16 h-16 bg-[#E51D2D]/20 border border-[#E51D2D] rounded-full flex items-center justify-center mx-auto text-[#E51D2D]">
-                  <Icon name="check" size={32} />
+                {/* Thick Right Checkmark Circle */}
+                <div className="w-20 h-20 bg-[#E51D2D]/20 border-2 border-[#E51D2D] rounded-full flex items-center justify-center mx-auto text-[#E51D2D] shadow-lg shadow-[#E51D2D]/30 animate-bounce">
+                  <svg className="w-10 h-10 stroke-[#E51D2D]" fill="none" viewBox="0 0 24 24" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-white">Strategy Request Sent!</h3>
-                <p className="text-white/60 text-sm">
-                  We've logged your request and sent a notification to tonikrossgala@gmail.com. Expect a response shortly!
+                <p className="text-white/60 text-sm max-w-sm mx-auto">
+                  Your request was logged successfully. We've sent a notification to <strong className="text-white">tonikrossgala@gmail.com</strong>.
                 </p>
               </div>
             ) : (
               <>
                 <div className="mb-6">
-                  <Pill className="mb-3 text-[#E51D2D] border-[#E51D2D]/30">
-                    <Icon name="sparkles" size={12} />
-                    Let's Connect
-                  </Pill>
+                  {/* Selected Tag with Dismiss 'X' Button */}
+                  {activeTag ? (
+                    <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold bg-[#E51D2D]/20 border border-[#E51D2D]/40 text-white mb-3">
+                      <Icon name="sparkles" size={12} className="text-[#E51D2D]" />
+                      <span>{activeTag}</span>
+                      {initialBudget && <span className="opacity-70">(${initialBudget})</span>}
+                      <button 
+                        type="button" 
+                        onClick={clearTag}
+                        title="Dismiss Tag"
+                        className="ml-1 p-0.5 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
+                      >
+                        <Icon name="x" size={13} className="text-white/80" />
+                      </button>
+                    </div>
+                  ) : (
+                    <Pill className="mb-3 text-[#E51D2D] border-[#E51D2D]/30">
+                      <Icon name="sparkles" size={12} />
+                      Let's Connect
+                    </Pill>
+                  )}
+
                   <h3 className="text-2xl font-extrabold text-white">Book A Strategy Session</h3>
                   <p className="text-sm text-white/50 mt-1">
                     {initialBudget ? `Estimated Bundle Total: $${initialBudget}` : "Tell us about your brand goals and project requirements."}
@@ -274,7 +305,10 @@
                     <select 
                       className="w-full bg-[#12141a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E51D2D] transition-colors"
                       value={formData.service}
-                      onChange={(e) => setFormData({...formData, service: e.target.value})}
+                      onChange={(e) => {
+                        setFormData({...formData, service: e.target.value});
+                        setActiveTag(e.target.value);
+                      }}
                     >
                       <option value="General Strategy">General Strategy Call</option>
                       <option value="Upwork Mentorship">Upwork Mentorship Program</option>
