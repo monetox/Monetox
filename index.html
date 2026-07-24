@@ -79,7 +79,10 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect, useRef, createContext, useContext } = React;
+
+    // Create Modal Global Context for Interactive Buttons
+    const ModalContext = createContext();
 
     // Lucide Icon Wrapper Component
     function Icon({ name, size = 18, color, className = "", strokeWidth = 2 }) {
@@ -145,7 +148,7 @@
     // Logo Component
     function Logo({ size = 32 }) {
       return (
-        <div className="relative flex items-center gap-2.5 shrink-0 group">
+        <div className="relative flex items-center gap-2.5 shrink-0 group cursor-pointer">
           <img 
             src="https://raw.githubusercontent.com/Tototkitfo/Monetox/main/monetox.jpg" 
             alt="Monetox Logo" 
@@ -168,10 +171,130 @@
       );
     }
 
+    // Interactive Modal Popup
+    function BookingModal() {
+      const { isOpen, closeModal, initialService, initialBudget } = useContext(ModalContext);
+      const [submitted, setSubmitted] = useState(false);
+      const [formData, setFormData] = useState({ name: '', email: '', service: 'General Strategy', details: '' });
+
+      useEffect(() => {
+        if (initialService) {
+          setFormData(prev => ({ ...prev, service: initialService }));
+        }
+      }, [initialService]);
+
+      if (!isOpen) return null;
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          closeModal();
+        }, 2500);
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 border border-white/10 relative shadow-2xl">
+            <button 
+              onClick={closeModal} 
+              className="absolute top-5 right-5 p-2 text-white/50 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <Icon name="x" size={18} />
+            </button>
+
+            {submitted ? (
+              <div className="text-center py-12 space-y-4">
+                <div className="w-16 h-16 bg-[#E51D2D]/20 border border-[#E51D2D] rounded-full flex items-center justify-center mx-auto text-[#E51D2D]">
+                  <Icon name="check" size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Strategy Call Requested!</h3>
+                <p className="text-white/60 text-sm">We've received your inquiry and will reach out within 24 hours.</p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <Pill className="mb-3 text-[#E51D2D] border-[#E51D2D]/30">
+                    <Icon name="sparkles" size={12} />
+                    Let's Connect
+                  </Pill>
+                  <h3 className="text-2xl font-extrabold text-white">Book A Strategy Session</h3>
+                  <p className="text-sm text-white/50 mt-1">
+                    {initialBudget ? `Estimated Bundle Total: $${initialBudget}` : "Tell us about your brand goals and requirements."}
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-white/70 mb-1">Your Name</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="Alex Morgan" 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#E51D2D] transition-colors"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-white/70 mb-1">Email Address</label>
+                    <input 
+                      type="email" 
+                      required 
+                      placeholder="alex@company.com" 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#E51D2D] transition-colors"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-white/70 mb-1">Service Interest</label>
+                    <select 
+                      className="w-full bg-[#12141a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E51D2D] transition-colors"
+                      value={formData.service}
+                      onChange={(e) => setFormData({...formData, service: e.target.value})}
+                    >
+                      <option value="General Strategy">General Strategy Call</option>
+                      <option value="Upwork Mentorship">Upwork Mentorship Program</option>
+                      <option value="Video Editing">Cinematic Video Editing</option>
+                      <option value="Vibe Coding">Vibe Code & MVP Development</option>
+                      <option value="Web Design">Web Design & Brand Scaling</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-white/70 mb-1">Project Details</label>
+                    <textarea 
+                      rows="3" 
+                      placeholder="Share brief details about your timeline or current revenue goals..." 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#E51D2D] transition-colors resize-none"
+                      value={formData.details}
+                      onChange={(e) => setFormData({...formData, details: e.target.value})}
+                    ></textarea>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] text-white font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-[#E51D2D]/30 mt-2"
+                  >
+                    Confirm Booking
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     // Navigation Header
     function Header() {
       const [open, setOpen] = useState(false);
       const [scrolled, setScrolled] = useState(false);
+      const { openModal } = useContext(ModalContext);
 
       useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
@@ -188,7 +311,7 @@
       ];
 
       return (
-        <header className="fixed top-0 inset-x-0 z-50 px-4 sm:px-8 pt-4">
+        <header className="fixed top-0 inset-x-0 z-40 px-4 sm:px-8 pt-4">
           <div
             className={`mx-auto max-w-7xl rounded-2xl transition-all duration-300 ${
               scrolled ? "glass-panel py-3 px-5 shadow-2xl" : "bg-transparent py-4 px-2"
@@ -211,10 +334,13 @@
                 <a href="#pricing" className="text-[13.5px] font-medium text-white/70 hover:text-white px-3 py-1.5 transition-colors">
                   Calculator
                 </a>
-                <a href="#contact" className="group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] hover:opacity-95 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#E51D2D]/25">
+                <button 
+                  onClick={() => openModal('General Strategy')} 
+                  className="group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] hover:opacity-95 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-[#E51D2D]/25 active:scale-95"
+                >
                   Book A Strategy Call
                   <Icon name="arrow-right" size={15} />
-                </a>
+                </button>
               </div>
 
               <button className="md:hidden text-white/80 p-2" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
@@ -231,9 +357,12 @@
                   {l.label}
                 </a>
               ))}
-              <a href="#contact" onClick={() => setOpen(false)} className="mt-2 text-center rounded-xl py-3 text-[14px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96]">
+              <button 
+                onClick={() => { setOpen(false); openModal('General Strategy'); }} 
+                className="mt-2 text-center rounded-xl py-3 text-[14px] font-semibold text-white bg-gradient-to-r from-[#E51D2D] to-[#2B2A96]"
+              >
                 Book Strategy Call
-              </a>
+              </button>
             </div>
           )}
         </header>
@@ -242,6 +371,8 @@
 
     // Hero Section
     function Hero() {
+      const { openModal } = useContext(ModalContext);
+
       return (
         <section id="top" className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-5 sm:px-8 overflow-hidden">
           {/* Ambient Lighting Gradients */}
@@ -273,11 +404,14 @@
 
             <Reveal delay={300}>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="#contact" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-all duration-200 hover:bg-white/90 hover:scale-105 shadow-xl shadow-white/10">
+                <button 
+                  onClick={() => openModal('Brand Scaling')} 
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-all duration-200 hover:bg-white/90 hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
+                >
                   Scale Your Brand
                   <Icon name="arrow-right" size={16} />
-                </a>
-                <a href="#mentorship" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-white/10 hover:border-white/20">
+                </button>
+                <a href="#mentorship" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-white/10 hover:border-white/20 active:scale-95">
                   <Icon name="graduation-cap" size={16} className="text-[#E51D2D]" />
                   Upwork Mentorship
                 </a>
@@ -303,7 +437,7 @@
                       { label: "Avg Turnaround", value: "48 Hours" },
                       { label: "Client CSAT", value: "99.2%" }
                     ].map((s, i) => (
-                      <div key={i} className="glass-panel rounded-xl p-3 text-left">
+                      <div key={i} className="glass-panel rounded-xl p-3 text-left hover:border-white/20 transition-all">
                         <div className="text-lg sm:text-xl font-extrabold text-white">{s.value}</div>
                         <div className="text-[11px] text-white/50 font-medium">{s.label}</div>
                       </div>
@@ -317,8 +451,10 @@
       );
     }
 
-    // Comprehensive Services Section with Images
+    // Services Section with Interactive Selection
     function Services() {
+      const { openModal } = useContext(ModalContext);
+
       const services = [
         {
           id: "video",
@@ -390,7 +526,10 @@
           <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((s, idx) => (
               <Reveal key={s.id} delay={idx * 80}>
-                <div className="glass-card rounded-2xl overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 h-full flex flex-col">
+                <div 
+                  onClick={() => openModal(s.title)}
+                  className="glass-card rounded-2xl overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 h-full flex flex-col cursor-pointer"
+                >
                   {/* Image Container */}
                   <div className="relative h-48 overflow-hidden">
                     <img 
@@ -399,8 +538,8 @@
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100" 
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e12] via-transparent to-transparent" />
-                    <div className="absolute top-3 right-3 glass-panel p-2 rounded-xl text-white">
-                      <Icon name={s.icon} size={18} className="text-[#E51D2D]" />
+                    <div className="absolute top-3 right-3 glass-panel p-2 rounded-xl text-white group-hover:bg-[#E51D2D] transition-colors">
+                      <Icon name={s.icon} size={18} className="text-[#E51D2D] group-hover:text-white" />
                     </div>
                   </div>
 
@@ -432,10 +571,11 @@
 
     // Specialized Upwork Mentorship Feature Spotlight
     function MentorshipSpotlight() {
+      const { openModal } = useContext(ModalContext);
+
       return (
         <section id="mentorship" className="relative py-24 px-5 sm:px-8 max-w-7xl mx-auto">
           <div className="glass-panel rounded-3xl p-8 sm:p-12 border border-[#E51D2D]/30 relative overflow-hidden">
-            {/* Background Accent */}
             <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-[#E51D2D]/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
@@ -471,10 +611,13 @@
                   </div>
 
                   <div className="mt-8">
-                    <a href="#contact" className="inline-flex items-center gap-2 rounded-full px-6 py-3 bg-[#E51D2D] hover:bg-[#E51D2D]/90 text-white font-bold text-sm transition-all shadow-lg shadow-[#E51D2D]/30">
+                    <button 
+                      onClick={() => openModal('Upwork Mentorship')} 
+                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 bg-[#E51D2D] hover:bg-[#E51D2D]/90 active:scale-95 text-white font-bold text-sm transition-all shadow-lg shadow-[#E51D2D]/30"
+                    >
                       Apply for Mentorship
                       <Icon name="arrow-right" size={16} />
-                    </a>
+                    </button>
                   </div>
                 </div>
               </Reveal>
@@ -507,6 +650,7 @@
     // Filterable Visual Portfolio Showcase Section
     function Portfolio() {
       const [filter, setFilter] = useState("all");
+      const { openModal } = useContext(ModalContext);
 
       const projects = [
         { title: "SaaS Vibe Code MVP", cat: "coding", img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80", tag: "Vibe Coding" },
@@ -546,8 +690,8 @@
                   <button
                     key={t.id}
                     onClick={() => setFilter(t.id)}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      filter === t.id ? "bg-[#E51D2D] text-white shadow-md" : "text-white/60 hover:text-white"
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      filter === t.id ? "bg-[#E51D2D] text-white shadow-md scale-105" : "text-white/60 hover:text-white"
                     }`}
                   >
                     {t.label}
@@ -561,7 +705,10 @@
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((item, idx) => (
               <Reveal key={idx} delay={idx * 60}>
-                <div className="glass-card rounded-2xl overflow-hidden group relative">
+                <div 
+                  onClick={() => openModal(item.title)}
+                  className="glass-card rounded-2xl overflow-hidden group relative cursor-pointer"
+                >
                   <div className="h-64 overflow-hidden relative">
                     <img 
                       src={item.img} 
@@ -623,7 +770,7 @@
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map((s, idx) => (
               <Reveal key={s.num} delay={idx * 100}>
-                <div className="glass-panel p-8 rounded-2xl relative border border-white/10 flex flex-col h-full">
+                <div className="glass-panel p-8 rounded-2xl relative border border-white/10 flex flex-col h-full hover:border-[#E51D2D]/40 transition-colors">
                   <div className="text-4xl font-extrabold text-[#E51D2D] opacity-80 mb-4">{s.num}</div>
                   <h3 className="text-xl font-bold text-white mb-2">{s.title}</h3>
                   <p className="text-sm text-white/50 leading-relaxed">{s.desc}</p>
@@ -638,6 +785,7 @@
     // Dynamic Pricing Calculator Section
     function DynamicPricing() {
       const [selectedServices, setSelectedServices] = useState(["video"]);
+      const { openModal } = useContext(ModalContext);
 
       const pricingOptions = [
         { id: "video", label: "Video Editing Package", price: 1200 },
@@ -696,7 +844,7 @@
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${
+                      <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors ${
                         isChecked ? "bg-[#E51D2D] border-[#E51D2D]" : "border-white/30"
                       }`}>
                         {isChecked && <Icon name="check" size={12} className="text-white" />}
@@ -719,9 +867,12 @@
                 Custom retainer discounts applied automatically for multi-service bundles.
               </p>
               
-              <a href="#contact" className="mt-8 w-full py-3.5 rounded-full bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] text-white font-bold text-sm hover:opacity-90 transition-opacity">
+              <button 
+                onClick={() => openModal('Custom Bundle Package', totalPrice)} 
+                className="mt-8 w-full py-3.5 rounded-full bg-gradient-to-r from-[#E51D2D] to-[#2B2A96] text-white font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[#E51D2D]/20 cursor-pointer"
+              >
                 Lock In Estimate
-              </a>
+              </button>
             </div>
           </div>
         </section>
@@ -730,6 +881,8 @@
 
     // CTA Banner
     function ContactCTA() {
+      const { openModal } = useContext(ModalContext);
+
       return (
         <section id="contact" className="py-20 px-5 sm:px-8 max-w-7xl mx-auto">
           <Reveal>
@@ -744,13 +897,19 @@
                 </p>
 
                 <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-                  <a href="mailto:hello@monetox.com" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black hover:bg-white/90 transition-all">
+                  <a 
+                    href="mailto:hello@monetox.com" 
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black hover:bg-white/90 active:scale-95 transition-all"
+                  >
                     <Icon name="mail" size={16} />
                     Direct Email Us
                   </a>
-                  <a href="#top" className="inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-bold text-white hover:bg-white/10 transition-all">
-                    Back to Top
-                  </a>
+                  <button 
+                    onClick={() => openModal('General Call')} 
+                    className="inline-flex items-center justify-center gap-2 rounded-full glass-panel px-8 py-3.5 text-sm font-bold text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Book A Call
+                  </button>
                 </div>
               </div>
             </div>
@@ -777,22 +936,39 @@
       );
     }
 
-    // App Component
+    // Main App Component with State Provider
     function App() {
+      const [isOpen, setIsOpen] = useState(false);
+      const [initialService, setInitialService] = useState('General Strategy');
+      const [initialBudget, setInitialBudget] = useState(null);
+
+      const openModal = (service = 'General Strategy', budget = null) => {
+        setInitialService(service);
+        setInitialBudget(budget);
+        setIsOpen(true);
+      };
+
+      const closeModal = () => {
+        setIsOpen(false);
+      };
+
       return (
-        <div className="min-h-screen bg-[#060709] text-white">
-          <Header />
-          <main>
-            <Hero />
-            <Services />
-            <MentorshipSpotlight />
-            <Portfolio />
-            <Process />
-            <DynamicPricing />
-            <ContactCTA />
-          </main>
-          <Footer />
-        </div>
+        <ModalContext.Provider value={{ isOpen, openModal, closeModal, initialService, initialBudget }}>
+          <div className="min-h-screen bg-[#060709] text-white">
+            <Header />
+            <main>
+              <Hero />
+              <Services />
+              <MentorshipSpotlight />
+              <Portfolio />
+              <Process />
+              <DynamicPricing />
+              <ContactCTA />
+            </main>
+            <Footer />
+            <BookingModal />
+          </div>
+        </ModalContext.Provider>
       );
     }
 
