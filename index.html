@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monetox — Digital Creation at Light Speed</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & React-DOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel Compiler -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-[#08090a] text-white antialiased selection:bg-[#E51D2D]/30">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Helper component to render Lucide icons in standalone React
+    function Icon({ name, size = 18, color, className = "", strokeWidth = 2 }) {
+      const ref = useRef(null);
+      useEffect(() => {
+        if (ref.current) {
+          ref.current.innerHTML = '';
+          const iconNode = lucide.createIcons({
+            icons: { [name]: lucide.icons[name] },
+            nameAttr: 'data-lucide'
+          });
+        }
+      }, [name]);
+
+      return (
+        <i 
+          ref={ref} 
+          data-lucide={name} 
+          style={{ width: size, height: size, color: color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          className={className}
+        />
+      );
+    }
+
+    function useReveal() {
+      const ref = useRef(null);
+      const [visible, setVisible] = useState(false);
+
+      useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const io = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting) {
+              setVisible(true);
+              io.disconnect();
+            }
+          },
+          { threshold: 0.15 }
+        );
+        io.observe(el);
+        return () => io.disconnect();
+      }, []);
+
+      return [ref, visible];
+    }
+
+    function Reveal({ children, delay = 0, className = "" }) {
+      const [ref, visible] = useReveal();
+      return (
+        <div
+          ref={ref}
+          className={className}
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0px)" : "translateY(18px)",
+            transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+          }}
+        >
+          {children}
+        </div>
+      );
+    }
+
+    function Logo({ size = 32, ring = true }) {
+      return (
+        <div className="relative shrink-0" style={{ width: size, height: size }}>
+          {ring && (
+            <div
+              className="absolute -inset-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: "conic-gradient(from 180deg, rgba(229,29,45,0.55), rgba(43,42,150,0.55), rgba(229,29,45,0.55))",
+                filter: "blur(6px)",
+              }}
+            />
+          )}
+          <img
+            src="1000069702.png"
+            alt="Monetox"
+            width={size}
+            height={size}
+            className="relative rounded-full object-cover"
+            style={{
+              width: size,
+              height: size,
+              boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 4px 16px -4px rgba(43,42,150,0.55)",
+            }}
+          />
+        </div>
+      );
+    }
+
+    function KeyHint({ children }) {
+      return (
+        <kbd
+          className="inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-[11px] font-medium text-white/45"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" }}
+        >
+          {children}
+        </kbd>
+      );
+    }
+
+    function Pill({ children, className = "" }) {
+      return (
+        <span
+          className={"inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium text-white/70 " + className}
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", backdropFilter: "blur(12px)" }}
+        >
+          {children}
+        </span>
+      );
+    }
+
+    function Header() {
+      const [open, setOpen] = useState(false);
+      const [scrolled, setScrolled] = useState(false);
+
+      useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 8);
+        window.addEventListener("scroll", onScroll);
+        return () => window.removeEventListener("scroll", onScroll);
+      }, []);
+
+      const links = [
+        { label: "Services", href: "#services" },
+        { label: "Work", href: "#process" },
+        { label: "Pricing", href: "#pricing" },
+        { label: "About", href: "#about" },
+      ];
+
+      return (
+        <header className="fixed top-0 inset-x-0 z-50">
+          <div
+            className="transition-all duration-300"
+            style={{
+              background: scrolled ? "rgba(8,9,10,0.72)" : "rgba(8,9,10,0)",
+              backdropFilter: scrolled ? "blur(16px)" : "blur(0px)",
+              borderBottom: scrolled ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(255,255,255,0)",
+            }}
+          >
+            <div className="mx-auto max-w-7xl px-5 sm:px-8">
+              <div className="flex h-16 items-center justify-between">
+                <a href="#top" className="group flex items-center gap-2.5">
+                  <Logo size={30} />
+                  <span className="text-[15px] font-semibold tracking-tight text-white">Monetox</span>
+                </a>
+
+                <nav className="hidden md:flex items-center gap-1">
+                  {links.map((l) => (
+                    <a key={l.label} href={l.href} className="rounded-full px-3.5 py-2 text-[13.5px] font-medium text-white/60 transition-colors duration-200 hover:text-white hover:bg-white/[0.05]">
+                      {l.label}
+                    </a>
+                  ))}
+                </nav>
+
+                <div className="hidden md:flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 text-white/35 text-[12px] pr-1">
+                    <span>Search</span>
+                    <KeyHint>⌘K</KeyHint>
+                  </div>
+                  <a href="#contact" className="group relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] font-semibold text-white transition-transform duration-200 hover:scale-[1.03]"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)" }}>
+                    Book a Call
+                  </a>
+                </div>
+
+                <button className="md:hidden text-white/80 p-2 -mr-2" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
+                  <Icon name={open ? "x" : "menu"} size={20} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {open && (
+            <div className="md:hidden px-5 pb-5 pt-2" style={{ background: "rgba(8,9,10,0.97)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+              <nav className="flex flex-col gap-1">
+                {links.map((l) => (
+                  <a key={l.label} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-[14.5px] font-medium text-white/70 hover:text-white hover:bg-white/[0.05]">
+                    {l.label}
+                  </a>
+                ))}
+                <a href="#contact" onClick={() => setOpen(false)} className="mt-2 rounded-full px-4 py-2.5 text-center text-[14px] font-semibold text-white" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)" }}>
+                  Book a Call
+                </a>
+              </nav>
+            </div>
+          )}
+        </header>
+      );
+    }
+
+    function MiniStatusIcon() {
+      return (
+        <div className="relative flex h-7 w-7 items-center justify-center rounded-full shrink-0" style={{ background: "radial-gradient(circle at 30% 30%, #3a39b8, #201f7a)", boxShadow: "0 0 0 1px rgba(255,255,255,0.08)" }}>
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+            <path d="M4 4 L14 12 L4 20 Z M12.5 10 L20 4 L20 20 L9 20 Z" fill="#E51D2D" stroke="#E51D2D" strokeWidth="0.5" strokeLinejoin="round" />
+          </svg>
+        </div>
+      );
+    }
+
+    function DashboardPreview() {
+      const rows = [
+        { name: "Aurora — brand site", stage: "Vibe Coding", pct: 82, active: true },
+        { name: "Nova launch trailer", stage: "Video Edit", pct: 46, active: false },
+        { name: "Kindred thumbnails ×12", stage: "Design QA", pct: 95, active: false },
+      ];
+
+      return (
+        <div className="relative mx-auto w-full max-w-4xl rounded-2xl p-1.5" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02))" }}>
+          <div className="rounded-[14px] overflow-hidden" style={{ background: "rgba(13,14,17,0.9)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div className="flex gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+              </div>
+              <div className="mx-auto flex items-center gap-2 text-[11.5px] text-white/35">
+                <MiniStatusIcon />
+                <span>Monetox Portal — Active Sprints</span>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-3 gap-3 mb-5">
+                {[
+                  { label: "Live projects", value: "07" },
+                  { label: "Avg. delivery", value: "6.4d" },
+                  { label: "Client CSAT", value: "98%" },
+                ].map((s) => (
+                  <div key={s.label} className="rounded-xl px-3.5 py-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div className="text-[18px] sm:text-[20px] font-semibold text-white tracking-tight">{s.value}</div>
+                    <div className="text-[11px] text-white/40 mt-0.5">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {rows.map((r) => (
+                  <div key={r.name} className="flex items-center gap-3 rounded-xl px-3.5 py-3 transition-colors duration-200 hover:bg-white/[0.03]"
+                    style={{ background: r.active ? "rgba(229,29,45,0.06)" : "rgba(255,255,255,0.015)", border: r.active ? "1px solid rgba(229,29,45,0.22)" : "1px solid rgba(255,255,255,0.05)" }}>
+                    <MiniStatusIcon />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13px] font-medium text-white/85 truncate">{r.name}</div>
+                      <div className="text-[11px] text-white/40">{r.stage}</div>
+                    </div>
+                    <div className="hidden sm:block w-24 h-1.5 rounded-full overflow-hidden bg-white/[0.06]">
+                      <div className="h-full rounded-full" style={{ width: `${r.pct}%`, background: "linear-gradient(90deg, #2B2A96, #E51D2D)" }} />
+                    </div>
+                    <span className="text-[11.5px] text-white/45 w-9 text-right shrink-0">{r.pct}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Hero() {
+      return (
+        <section id="top" className="relative overflow-hidden pt-36 pb-24 sm:pt-44 sm:pb-32 px-5 sm:px-8">
+          <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[560px] w-[860px] rounded-full opacity-40" style={{ background: "radial-gradient(ellipse at center, rgba(43,42,150,0.55), transparent 65%)", filter: "blur(60px)" }} />
+          <div className="pointer-events-none absolute top-10 right-[8%] h-[280px] w-[280px] rounded-full opacity-30" style={{ background: "radial-gradient(circle, rgba(229,29,45,0.45), transparent 70%)", filter: "blur(70px)" }} />
+
+          <div className="relative mx-auto max-w-5xl text-center">
+            <Reveal>
+              <Pill className="mx-auto">
+                <Icon name="sparkles" size={13} className="text-[#ff5b68]" />
+                Monetox 2.0 — Digital Creation at Light Speed
+              </Pill>
+            </Reveal>
+
+            <Reveal delay={80}>
+              <h1 className="mt-7 text-[2.6rem] leading-[1.08] sm:text-6xl sm:leading-[1.06] lg:text-[4.5rem] lg:leading-[1.03] font-semibold tracking-[-0.03em] text-white text-balance">
+                We code the vibe.<br />
+                <span className="relative inline-block">
+                  You scale the impact.
+                  <span className="absolute left-0 -bottom-1 h-[3px] w-full rounded-full" style={{ background: "linear-gradient(90deg, transparent, #E51D2D, transparent)", opacity: 0.7 }} />
+                </span>
+              </h1>
+            </Reveal>
+
+            <Reveal delay={160}>
+              <p className="mx-auto mt-6 max-w-2xl text-[16px] sm:text-[18px] leading-relaxed text-white/50">
+                From cinematic edits and viral thumbnails to vibe coding and high-performance websites. Everything your brand needs to dominate digitally.
+              </p>
+            </Reveal>
+
+            <Reveal delay={240}>
+              <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="#contact" className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[14.5px] font-semibold text-[#0b0c0e] transition-transform duration-200 hover:scale-[1.03]">
+                  Start a Project
+                  <Icon name="arrow-right" size={16} />
+                </a>
+                <a href="#services" className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14.5px] font-medium text-white/75 transition-colors duration-200 hover:text-white hover:bg-white/[0.05]" style={{ border: "1px solid rgba(255,255,255,0.1)" }}>
+                  Explore Services
+                </a>
+              </div>
+            </Reveal>
+
+            <Reveal delay={340} className="mt-16 sm:mt-20">
+              <DashboardPreview />
+            </Reveal>
+          </div>
+        </section>
+      );
+    }
+
+    function BentoCard({ iconName, title, desc, className = "", accent = "blue", children }) {
+      const [hover, setHover] = useState(false);
+      const glow = accent === "red" ? "rgba(229,29,45,0.14)" : "rgba(43,42,150,0.22)";
+      const iconBg = accent === "red" ? "linear-gradient(135deg, rgba(229,29,45,0.18), rgba(229,29,45,0.03))" : "linear-gradient(135deg, rgba(43,42,150,0.35), rgba(43,42,150,0.05))";
+      const iconColor = accent === "red" ? "#ff6b76" : "#8b8ae0";
+
+      return (
+        <div
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          className={"relative overflow-hidden rounded-2xl p-6 sm:p-7 flex flex-col transition-all duration-300 " + className}
+          style={{ background: "#121316", border: hover ? "1px solid rgba(255,255,255,0.16)" : "1px solid rgba(255,255,255,0.08)", transform: hover ? "translateY(-2px)" : "translateY(0)" }}
+        >
+          <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(circle, ${glow}, transparent 70%)`, opacity: hover ? 1 : 0.5, filter: "blur(10px)" }} />
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl mb-5" style={{ background: iconBg, border: "1px solid rgba(255,255,255,0.06)" }}>
+            <Icon name={iconName} size={18} color={iconColor} />
+          </div>
+          <h3 className="relative text-[16.5px] font-semibold text-white tracking-tight">{title}</h3>
+          <p className="relative mt-2 text-[13.5px] leading-relaxed text-white/45">{desc}</p>
+          {children}
+          <div className="mt-auto pt-4">
+            <Icon name="arrow-up-right" size={16} className="relative text-white/25 transition-all duration-300" style={{ opacity: hover ? 1 : 0, transform: hover ? "translate(0,0)" : "translate(-4px,4px)" }} />
+          </div>
+        </div>
+      );
+    }
+
+    function Services() {
+      return (
+        <section id="services" className="relative px-5 sm:px-8 py-24 sm:py-32">
+          <div className="mx-auto max-w-6xl">
+            <Reveal>
+              <div className="max-w-xl">
+                <Pill>
+                  <Icon name="circle" size={7} className="fill-[#E51D2D] text-[#E51D2D]" />
+                  What we do
+                </Pill>
+                <h2 className="mt-5 text-3xl sm:text-[2.6rem] font-semibold tracking-[-0.025em] text-white leading-[1.1]">
+                  One execution partner.<br /> Every asset your brand ships.
+                </h2>
+                <p className="mt-4 text-[15px] text-white/45 leading-relaxed">
+                  No handoffs between five different freelancers. One team, one Slack thread, output that ships.
+                </p>
+              </div>
+            </Reveal>
+
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Reveal delay={0} className="lg:col-span-2">
+                <BentoCard iconName="code-2" title="Vibe Coding & Rapid Prototyping" desc="From a Figma sketch or a voice memo to a working, deployable product in days — not sprints. We build fast, functional MVPs, internal tools, and web apps using modern AI-assisted workflows without sacrificing code quality." accent="blue" className="min-h-[240px]">
+                  <div className="relative mt-5 flex flex-wrap gap-2">
+                    {["Next.js", "React", "Tailwind", "Supabase", "Claude Code"].map((t) => (
+                      <span key={t} className="rounded-md px-2.5 py-1 text-[11px] font-medium text-white/50" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>{t}</span>
+                    ))}
+                  </div>
+                </BentoCard>
+              </Reveal>
+
+              <Reveal delay={80}>
+                <BentoCard iconName="layout-template" title="High-End Web Design" desc="Conversion-focused, pixel-precise websites with the polish of a product studio — built to load fast and hold attention." accent="red" className="min-h-[240px]" />
+              </Reveal>
+
+              <Reveal delay={120}>
+                <BentoCard iconName="clapperboard" title="Cinematic Video Editing" desc="Story-driven cuts, pacing, and color grading for launch films, ads, and long-form content that actually gets watched." accent="blue" className="min-h-[220px]" />
+              </Reveal>
+
+              <Reveal delay={160}>
+                <BentoCard iconName="image-up" title="High-CTR Thumbnail Design" desc="Data-informed thumbnail systems built to win the scroll and lift click-through without looking like clickbait." accent="red" className="min-h-[220px]" />
+              </Reveal>
+
+              <Reveal delay={200} className="lg:col-span-1">
+                <BentoCard iconName="rocket" title="Full Brand Scaling" desc="Media strategy, graphic systems, and content cadence that turn a one-off asset into a compounding growth engine." accent="blue" className="min-h-[220px]" />
+              </Reveal>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Process() {
+      const steps = [
+        { n: "01", title: "Vision", desc: "A working session to pin down the goal, the audience, and what \"done\" actually looks like — no generic briefs." },
+        { n: "02", title: "Vibe Code & Design", desc: "Design and build run in parallel. You see working prototypes and drafts inside 72 hours, not a moodboard." },
+        { n: "03", title: "Scale", desc: "Ship, measure, and iterate. We stay on to tune what's converting and extend what's working." },
+      ];
+
+      return (
+        <section id="process" className="relative px-5 sm:px-8 py-24 sm:py-32">
+          <div className="relative mx-auto max-w-6xl">
+            <Reveal>
+              <div className="text-center max-w-xl mx-auto">
+                <Pill className="mx-auto">
+                  <Icon name="command" size={13} className="text-white/50" />
+                  How it runs
+                </Pill>
+                <h2 className="mt-5 text-3xl sm:text-[2.6rem] font-semibold tracking-[-0.025em] text-white">Three stages. Zero drift.</h2>
+              </div>
+            </Reveal>
+
+            <div className="relative mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
+              {steps.map((s, i) => (
+                <Reveal key={s.n} delay={i * 120}>
+                  <div className="relative flex flex-col items-start px-1">
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-full text-[13px] font-semibold text-white/80 mb-6" style={{ background: "#121316", border: "1px solid rgba(255,255,255,0.14)" }}>
+                      {s.n}
+                    </div>
+                    <h3 className="text-[17px] font-semibold text-white tracking-tight">{s.title}</h3>
+                    <p className="mt-2.5 text-[14px] leading-relaxed text-white/45">{s.desc}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function CtaBanner() {
+      return (
+        <section id="contact" className="relative px-5 sm:px-8 py-6 sm:py-10">
+          <Reveal>
+            <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[28px] px-6 py-16 sm:px-16 sm:py-24 text-center" style={{ background: "radial-gradient(120% 140% at 50% 0%, rgba(43,42,150,0.35), rgba(18,19,22,0.4) 55%), #121316", border: "1px solid rgba(255,255,255,0.09)" }}>
+              <div className="relative flex justify-center mb-6">
+                <Logo size={44} />
+              </div>
+              <h2 className="relative text-3xl sm:text-5xl font-semibold tracking-[-0.03em] text-white leading-[1.08]">
+                Ready to elevate your<br className="hidden sm:block" /> digital footprint?
+              </h2>
+              <p className="relative mt-5 text-[15.5px] text-white/50 max-w-md mx-auto">
+                Tell us what you're building. We'll scope it, price it, and have a plan back in your inbox within a day.
+              </p>
+              <div className="relative mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="#" className="group inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-[14.5px] font-semibold text-[#0b0c0e] transition-transform duration-200 hover:scale-[1.03]">
+                  Get Started in 48 Hours
+                  <Icon name="arrow-right" size={16} />
+                </a>
+              </div>
+            </div>
+          </Reveal>
+        </section>
+      );
+    }
+
+    function Footer() {
+      return (
+        <footer id="about" className="relative px-5 sm:px-8 pt-20 pb-10">
+          <div className="mx-auto max-w-6xl" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="pt-14 grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_1fr] gap-10">
+              <div>
+                <a href="#top" className="group inline-flex items-center gap-2.5">
+                  <Logo size={28} />
+                  <span className="text-[15px] font-semibold tracking-tight text-white">Monetox</span>
+                </a>
+                <p className="mt-4 max-w-xs text-[13.5px] leading-relaxed text-white/40">
+                  The all-in-one digital execution partner for modern creators, startups, and brands.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-[12.5px] font-semibold text-white/70 uppercase tracking-wide">Company</h4>
+                <ul className="mt-4 flex flex-col gap-3 text-[13.5px] text-white/45">
+                  <li><a href="#services" className="hover:text-white transition-colors">Services</a></li>
+                  <li><a href="#process" className="hover:text-white transition-colors">Work</a></li>
+                  <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                  <li><a href="#contact" className="hover:text-white transition-colors">Contact</a></li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-[12.5px] font-semibold text-white/70 uppercase tracking-wide">Connect</h4>
+                <div className="mt-4 flex items-center gap-2">
+                  {["twitter", "github", "linkedin"].map((icon) => (
+                    <a key={icon} href="#" className="flex h-9 w-9 items-center justify-center rounded-full text-white/45 hover:text-white hover:bg-white/[0.06]" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <Icon name={icon} size={15} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 pb-2 text-[12.5px] text-white/30">
+              <span>© {new Date().getFullYear()} Monetox. All rights reserved.</span>
+            </div>
+          </div>
+        </footer>
+      );
+    }
+
+    function App() {
+      return (
+        <div className="min-h-screen w-full">
+          <Header />
+          <main>
+            <Hero />
+            <Services />
+            <Process />
+            <CtaBanner />
+          </main>
+          <Footer />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
+
