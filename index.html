@@ -132,7 +132,7 @@
       );
     }
 
-    // Logo Component (FIX APPLIED: whitespace-nowrap, leading-none, shrink-0)
+    // Logo Component
     function Logo({ size = 32 }) {
       return (
         <div className="relative flex items-center gap-2.5 shrink-0 group cursor-pointer">
@@ -235,7 +235,6 @@
 
             {submitted ? (
               <div className="text-center py-12 space-y-4">
-                {/* Thick Right Checkmark Circle */}
                 <div className="w-20 h-20 bg-[#E51D2D]/20 border-2 border-[#E51D2D] rounded-full flex items-center justify-center mx-auto text-[#E51D2D] shadow-lg shadow-[#E51D2D]/30 animate-bounce">
                   <svg className="w-10 h-10 stroke-[#E51D2D]" fill="none" viewBox="0 0 24 24" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
@@ -249,7 +248,6 @@
             ) : (
               <>
                 <div className="mb-6">
-                  {/* Selected Tag with Dismiss 'X' Button */}
                   {activeTag ? (
                     <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold bg-[#E51D2D]/20 border border-[#E51D2D]/40 text-white mb-3">
                       <Icon name="sparkles" size={12} className="text-[#E51D2D]" />
@@ -346,7 +344,7 @@
       );
     }
 
-    // Navigation Header (FIX APPLIED: shrink-0 flex items-center on anchor wrapper)
+    // Navigation Header
     function Header() {
       const [open, setOpen] = useState(false);
       const [scrolled, setScrolled] = useState(false);
@@ -425,12 +423,12 @@
       );
     }
 
-    // Hero Section
+    // Hero Section (FIXED MOBILE OVERLAP: Replaced strict min-h-screen with flexible responsive padding, adjusted mobile aspect ratio and grid overlay spacing)
     function Hero() {
       const { openModal } = useContext(ModalContext);
 
       return (
-        <section id="top" className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-5 sm:px-8 overflow-hidden">
+        <section id="top" className="relative py-28 sm:min-h-screen sm:flex sm:items-center sm:justify-center px-5 sm:px-8 overflow-hidden">
           <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[800px] rounded-full opacity-30 bg-gradient-to-tr from-[#2B2A96] to-[#E51D2D] blur-[120px]" />
           <div className="pointer-events-none absolute bottom-10 right-10 h-[300px] w-[300px] rounded-full opacity-20 bg-[#E51D2D] blur-[100px]" />
 
@@ -473,26 +471,26 @@
               </div>
             </Reveal>
 
-            <Reveal delay={400} className="mt-16 sm:mt-20">
+            <Reveal delay={400} className="mt-12 sm:mt-16">
               <div className="relative mx-auto max-w-5xl rounded-2xl p-2 glass-panel border border-white/10 shadow-2xl">
-                <div className="relative rounded-xl overflow-hidden aspect-video bg-[#0b0d12]">
+                <div className="relative rounded-xl overflow-hidden aspect-[4/3] sm:aspect-video bg-[#0b0d12]">
                   <img 
                     src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80" 
                     alt="Monetox Team Collaborating" 
                     className="w-full h-full object-cover opacity-80"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#060709] via-black/40 to-transparent" />
                   
-                  <div className="absolute bottom-6 left-6 right-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-6 sm:right-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                     {[
                       { label: "Projects Completed", value: "140+" },
                       { label: "Upwork Earnings Generated", value: "$350k+" },
                       { label: "Avg Turnaround", value: "48 Hours" },
                       { label: "Client CSAT", value: "99.2%" }
                     ].map((s, i) => (
-                      <div key={i} className="glass-panel rounded-xl p-3 text-left hover:border-white/20 transition-all">
-                        <div className="text-lg sm:text-xl font-extrabold text-white">{s.value}</div>
-                        <div className="text-[11px] text-white/50 font-medium">{s.label}</div>
+                      <div key={i} className="glass-panel rounded-xl p-2.5 sm:p-3 text-left hover:border-white/20 transition-all">
+                        <div className="text-base sm:text-xl font-extrabold text-white">{s.value}</div>
+                        <div className="text-[10px] sm:text-[11px] text-white/50 font-medium leading-tight">{s.label}</div>
                       </div>
                     ))}
                   </div>
@@ -855,7 +853,7 @@
       );
     }
 
-    // Client Reviews / Testimonials Section (12 Reviews, Show 3 Initially)
+    // Client Reviews / Testimonials Section
     function Testimonials() {
       const [showAll, setShowAll] = useState(false);
 
@@ -978,7 +976,6 @@
               <Reveal key={idx} delay={(idx % 3) * 80}>
                 <div className="glass-card p-6 rounded-2xl border border-white/10 flex flex-col justify-between h-full hover:border-[#E51D2D]/40 transition-all duration-300">
                   <div>
-                    {/* Star Rating & Category Tag */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-1 text-amber-400">
                         {[...Array(r.rating)].map((_, i) => (
@@ -990,13 +987,11 @@
                       </span>
                     </div>
 
-                    {/* Review Text */}
                     <p className="text-sm text-white/70 leading-relaxed italic mb-6">
                       "{r.review}"
                     </p>
                   </div>
 
-                  {/* Client Info */}
                   <div className="flex items-center gap-3 pt-4 border-t border-white/5">
                     <img src={r.avatar} alt={r.name} className="w-10 h-10 rounded-full object-cover border border-white/20" />
                     <div>
@@ -1009,7 +1004,6 @@
             ))}
           </div>
 
-          {/* Toggle Button */}
           <div className="mt-12 text-center">
             <button
               onClick={() => setShowAll(!showAll)}
@@ -1085,3 +1079,4 @@
   </script>
 </body>
 </html>
+
